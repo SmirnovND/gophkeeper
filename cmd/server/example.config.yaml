@@ -1,2 +1,4 @@
-server:
+app:
   jwt_secret: "supersecretkey"
+db:
+  db_dsn: "postgresql://developer:developer@localhost:5432/gophkeeper?sslmode=disable"

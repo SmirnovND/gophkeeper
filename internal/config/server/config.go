@@ -27,7 +27,7 @@ func (c *Config) GetJwtSecret() string {
 	return c.App.JwtSecret
 }
 
-func NewConfig() (cf interfaces.Config) {
+func NewConfig() interfaces.ConfigServer {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Println(err)

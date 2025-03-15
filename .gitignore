@@ -1,0 +1,3 @@
+/.idea
+/docker/postgres/data
+/cmd/server/config.yaml

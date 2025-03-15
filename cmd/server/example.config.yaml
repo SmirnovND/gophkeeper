@@ -1,0 +1,2 @@
+server:
+  jwt_secret: "supersecretkey"

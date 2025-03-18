@@ -9,10 +9,11 @@ help:
 	@$(TAB) down-docker - остановка контейнера
 	@$(TAB) migrate-up - выполнение миграций в базе данных
 	@$(TAB) migrate-down - откат последней миграции в базе данных
+	@$(TAB) doc - сгенерировать документацию
 	@$(TAB) help - вывод справки по командам
 
 up-server:
-	go run ./cmd/server/main.go -a=localhost:41849 -d=postgresql://developer:developer@localhost:5432/postgres?sslmode=disable
+	go run ./cmd/server/main.go ./cmd/server/config.yaml
 
 up-docker:
 	docker-compose up -d
@@ -28,3 +29,6 @@ migrate-down:
 
 migrate-create:
 	migrate create -ext sql -dir migrations -seq $(name)
+
+doc:
+	swag init -g ./cmd/server/main.go

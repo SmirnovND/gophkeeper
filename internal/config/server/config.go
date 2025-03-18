@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"gopkg.in/yaml.v3"
 	"log"
@@ -57,7 +58,7 @@ func NewConfig() interfaces.ConfigServer {
 	cPath := os.Args[1]
 	cf := &Config{}
 	cf.LoadConfig(cPath)
-
+	fmt.Println(cf)
 	return cf
 }
 

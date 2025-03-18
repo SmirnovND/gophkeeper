@@ -21,6 +21,7 @@ func (hc *HealthcheckController) HandlePing(w http.ResponseWriter, r *http.Reque
 		http.Error(w, "Failed to connect DB", http.StatusInternalServerError)
 		return
 	} else {
+		w.Write([]byte("pong"))
 		w.WriteHeader(http.StatusOK)
 	}
 }

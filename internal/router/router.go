@@ -8,17 +8,23 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/jmoiron/sqlx"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 )
 
 func Handler(diContainer *container.Container) http.Handler {
 	var HealthcheckController *controllers.HealthcheckController
+	var AuthController *controllers.AuthController
+	var cf interfaces.ConfigServer
 	err := diContainer.Invoke(func(
 		d *sqlx.DB,
 		c interfaces.ConfigServer,
 		healthcheckControl *controllers.HealthcheckController,
+		authControl *controllers.AuthController,
 	) {
 		HealthcheckController = healthcheckControl
+		AuthController = authControl
+		cf = c
 	})
 	if err != nil {
 		fmt.Println(err)
@@ -27,6 +33,13 @@ func Handler(diContainer *container.Container) http.Handler {
 
 	r := chi.NewRouter()
 	r.Use(middleware.StripSlashes)
+
+	r.Get("/swagger/*", httpSwagger.Handler(
+		httpSwagger.URL(fmt.Sprintf("http://%s/swagger/doc.json", cf.GetRunAddr())),
+	))
+
+	r.Post("/api/user/register", AuthController.HandleRegisterJSON)
+	r.Post("/api/user/login", AuthController.HandleLoginJSON)
 
 	r.Get("/ping", HealthcheckController.HandlePing)
 

@@ -8,8 +8,9 @@ import (
 )
 
 type Config struct {
-	Db  `yaml:"db"`
-	App `yaml:"app"`
+	Db       `yaml:"db"`
+	App      `yaml:"app"`
+	RabbitMQ `yaml:"rabbitmq"`
 }
 
 type Db struct {
@@ -18,13 +19,32 @@ type Db struct {
 
 type App struct {
 	JwtSecret string `yaml:"jwt_secret"`
+	RunAddr   string `yaml:"run_addr"`
+}
+
+type RabbitMQ struct {
+	Host     string `yaml:"host"`
+	Port     string `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+	VHost    string `yaml:"vhost"`
 }
 
 func (c *Config) GetDBDsn() string {
 	return c.Db.Dsn
 }
+
 func (c *Config) GetJwtSecret() string {
 	return c.App.JwtSecret
+}
+
+func (c *Config) GetRunAddr() string {
+	return c.App.RunAddr
+}
+
+func (c *Config) GetRabbitMQURI() string {
+	return "amqp://" + c.RabbitMQ.User + ":" + c.RabbitMQ.Password + "@" +
+		c.RabbitMQ.Host + ":" + c.RabbitMQ.Port + "/" + c.RabbitMQ.VHost
 }
 
 func NewConfig() interfaces.ConfigServer {

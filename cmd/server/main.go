@@ -1,6 +1,9 @@
 package main
 
 import (
+	"github.com/SmirnovND/gophkeeper/internal/container"
+	"github.com/SmirnovND/gophkeeper/internal/interfaces"
+	"github.com/SmirnovND/gophkeeper/internal/router"
 	"github.com/SmirnovND/toolbox/pkg/logger"
 	"github.com/SmirnovND/toolbox/pkg/middleware"
 	"github.com/SmirnovND/toolbox/pkg/migrations"
@@ -19,8 +22,8 @@ func main() {
 func Run() error {
 	diContainer := container.NewContainer()
 
-	var cf *config.Config
-	diContainer.Invoke(func(c *config.Config) {
+	var cf interfaces.ConfigServer
+	diContainer.Invoke(func(c interfaces.ConfigServer) {
 		cf = c
 	})
 
@@ -55,17 +58,7 @@ func Run() error {
 	defer rabbitProducer.Close()
 	defer rabbitConsumer.Close()
 
-	var rabbitMqService *service.RabbitMqService
-	var processingUseCase *usecase.ProcessingUseCase
-	diContainer.Invoke(func(rs *service.RabbitMqService, pu *usecase.ProcessingUseCase) {
-		rabbitMqService = rs
-		processingUseCase = pu
-	})
-	go func() {
-		rabbitMqService.Consume(processingUseCase.CheckProcessedAndAccrueBalance)
-	}()
-
-	return http.ListenAndServe(cf.GetFlagRunAddr(), middleware.ChainMiddleware(
+	return http.ListenAndServe(cf.GetRunAddr(), middleware.ChainMiddleware(
 		router.Handler(diContainer),
 		logger.WithLogging,
 	))

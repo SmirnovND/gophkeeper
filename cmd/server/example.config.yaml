@@ -1,4 +1,5 @@
 app:
   jwt_secret: "supersecretkey"
+  run_addr: "127.0.0.1:8085"
 db:
   db_dsn: "postgresql://developer:developer@localhost:5432/gophkeeper?sslmode=disable"

@@ -4,24 +4,16 @@ import (
 	"database/sql"
 	"fmt"
 	"github.com/SmirnovND/gophkeeper/internal/domain"
-	"github.com/jmoiron/sqlx"
+	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 )
 
 type UserRepo struct {
-	db *sqlx.DB
-	tx *sqlx.Tx
+	db interfaces.DB
 }
 
-func NewUserRepo(db *sqlx.DB) *UserRepo {
+func NewUserRepo(db interfaces.DB) *UserRepo {
 	return &UserRepo{
 		db: db,
-	}
-}
-
-func (r *UserRepo) WithTx(tx *sqlx.Tx) *UserRepo {
-	return &UserRepo{
-		db: r.db,
-		tx: tx,
 	}
 }
 
@@ -43,9 +35,6 @@ func (r *UserRepo) FindUser(login string) (*domain.User, error) {
 
 func (r *UserRepo) SaveUser(user *domain.User) error {
 	exec := r.db.QueryRow
-	if r.tx != nil {
-		exec = r.tx.QueryRow
-	}
 
 	// Запрос с RETURNING id, чтобы получить вставленный id
 	query := `INSERT INTO "user" (login, pass_hash) VALUES ($1, $2) RETURNING id`

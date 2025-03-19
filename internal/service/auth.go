@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"github.com/golang-jwt/jwt/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -12,21 +13,16 @@ type AuthService struct {
 	cf interfaces.ConfigServer
 }
 
-func NewAuthService(cf interfaces.ConfigServer) *AuthService {
+func NewAuthService(cf interfaces.ConfigServer) interfaces.AuthService {
 	return &AuthService{
 		cf: cf,
 	}
 }
 
-type Claims struct {
-	Login string `json:"login"`
-	jwt.RegisteredClaims
-}
-
 func (a *AuthService) GenerateToken(login string) (string, error) {
 	expirationTime := time.Now().Add(24 * time.Hour)
 
-	claims := &Claims{
+	claims := &domain.Claims{
 		Login: login,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(expirationTime),
@@ -40,10 +36,10 @@ func (a *AuthService) GenerateToken(login string) (string, error) {
 	return token.SignedString([]byte(a.cf.GetJwtSecret()))
 }
 
-func (a *AuthService) ValidateToken(tokenString string) (*Claims, error) {
+func (a *AuthService) ValidateToken(tokenString string) (*domain.Claims, error) {
 	// Парсим токен
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return a.cf.GetJwtSecret(), nil
+	token, err := jwt.ParseWithClaims(tokenString, &domain.Claims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte(a.cf.GetJwtSecret()), nil
 	})
 
 	if err != nil {
@@ -51,7 +47,7 @@ func (a *AuthService) ValidateToken(tokenString string) (*Claims, error) {
 	}
 
 	// Проверяем, является ли токен действительным
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
+	if claims, ok := token.Claims.(*domain.Claims); ok && token.Valid {
 		return claims, nil
 	}
 

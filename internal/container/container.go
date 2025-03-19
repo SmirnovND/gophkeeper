@@ -1,7 +1,6 @@
 package container
 
 import (
-	"fmt"
 	config "github.com/SmirnovND/gophkeeper/internal/config/server"
 	"github.com/SmirnovND/gophkeeper/internal/controllers"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
@@ -35,11 +34,26 @@ func (c *Container) provideDependencies() {
 	// Регистрируем конфигурацию
 	c.container.Provide(config.NewConfig)
 	c.container.Provide(func(configServer interfaces.ConfigServer) *sqlx.DB {
-		fmt.Print("________")
 		return db.NewDB(configServer.GetDBDsn())
 	})
-	c.container.Provide(db.NewTransactionManager)
+	// Регистрируем DB интерфейс
+	// При регистрации:
+	c.container.Provide(func(db *sqlx.DB) interfaces.DB {
+		return NewDBAdapter(db)
+	})
 	c.container.Provide(http.NewAPIClient)
+}
+
+type DBAdapter struct {
+	*sqlx.DB
+}
+
+func NewDBAdapter(db *sqlx.DB) *DBAdapter {
+	return &DBAdapter{db}
+}
+
+func (d *DBAdapter) QueryRow(query string, args ...interface{}) *sqlx.Row {
+	return d.DB.QueryRowx(query, args...) // Используем QueryRowx вместо QueryRow
 }
 
 func (c *Container) provideUsecase() {

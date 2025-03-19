@@ -1,15 +1,15 @@
 package controllers
 
 import (
-	"github.com/jmoiron/sqlx"
+	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"net/http"
 )
 
 type HealthcheckController struct {
-	DB *sqlx.DB
+	DB interfaces.DB
 }
 
-func NewHealthcheckController(DB *sqlx.DB) *HealthcheckController {
+func NewHealthcheckController(DB interfaces.DB) *HealthcheckController {
 	return &HealthcheckController{
 		DB: DB,
 	}

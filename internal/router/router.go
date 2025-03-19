@@ -7,7 +7,6 @@ import (
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/jmoiron/sqlx"
 	httpSwagger "github.com/swaggo/http-swagger"
 	"net/http"
 )
@@ -17,7 +16,6 @@ func Handler(diContainer *container.Container) http.Handler {
 	var AuthController *controllers.AuthController
 	var cf interfaces.ConfigServer
 	err := diContainer.Invoke(func(
-		d *sqlx.DB,
 		c interfaces.ConfigServer,
 		healthcheckControl *controllers.HealthcheckController,
 		authControl *controllers.AuthController,

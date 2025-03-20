@@ -10,38 +10,30 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: '1.21'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
 
-    - name: Build client for all platforms
-      run: make build-client-all
+      - name: Build client for all platforms
+        run: make build-client-all
 
-    - name: Upload Windows build
-      uses: actions/upload-artifact@v3
-      with:
-        name: gophkeeper-client-windows
-        path: build/gophkeeper-client-windows-amd64.exe
+      - name: Archive builds
+        run: |
+          mkdir -p artifacts
+          cp build/gophkeeper-client-windows-amd64.exe artifacts/
+          cp build/gophkeeper-client-linux-amd64 artifacts/
+          cp build/gophkeeper-client-darwin-amd64 artifacts/
+          cp build/gophkeeper-client-darwin-arm64 artifacts/
+          tar -czvf artifacts/gophkeeper-client-builds.tar.gz -C artifacts .
 
-    - name: Upload Linux build
-      uses: actions/upload-artifact@v3
-      with:
-        name: gophkeeper-client-linux
-        path: build/gophkeeper-client-linux-amd64
-
-    - name: Upload macOS (Intel) build
-      uses: actions/upload-artifact@v3
-      with:
-        name: gophkeeper-client-macos-intel
-        path: build/gophkeeper-client-darwin-amd64
-
-    - name: Upload macOS (Apple Silicon) build
-      uses: actions/upload-artifact@v3
-      with:
-        name: gophkeeper-client-macos-arm
-        path: build/gophkeeper-client-darwin-arm64
+      - name: Upload builds
+        uses: actions/upload-artifact@v3
+        with:
+          name: gophkeeper-client-builds
+          path: artifacts/gophkeeper-client-builds.tar.gz

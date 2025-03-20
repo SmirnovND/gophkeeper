@@ -28,7 +28,7 @@ func NewAuthController(AuthUseCase interfaces.AuthUseCase) *AuthController {
 // @Failure 400 {object} map[string]string "Ошибка в формате запроса"
 // @Failure 409 {object} map[string]string "Пользователь с таким логином уже существует"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
-// @Router /register [post]
+// @Router /api/user/register [post]
 func (a *AuthController) HandleRegisterJSON(w http.ResponseWriter, r *http.Request) {
 	credentials, err := paramsparser.JSONParse[domain.Credentials](w, r)
 	if err != nil {
@@ -48,7 +48,7 @@ func (a *AuthController) HandleRegisterJSON(w http.ResponseWriter, r *http.Reque
 // @Failure 400 {object} map[string]string "Ошибка в формате запроса"
 // @Failure 401 {object} map[string]string "Неверный логин или пароль"
 // @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
-// @Router /login [post]
+// @Router /api/user/login [post]
 func (a *AuthController) HandleLoginJSON(w http.ResponseWriter, r *http.Request) {
 	credentials, err := paramsparser.JSONParse[domain.Credentials](w, r)
 	if err != nil {

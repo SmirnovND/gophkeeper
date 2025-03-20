@@ -16,11 +16,8 @@ type UserRepo interface {
 // TokenStorage описывает интерфейс для хранения и управления токенами авторизации.
 type TokenStorage interface {
 	// SaveToken сохраняет токен для.
-	SaveToken(token string)
+	SaveToken(name, token string) error
 
-	// GetToken возвращает токен.
-	GetToken() string
-
-	// ClearToken очищает токен в памяти.
-	ClearToken()
+	// LoadToken загружает токен из файла.
+	LoadToken(name string) (string, error)
 }

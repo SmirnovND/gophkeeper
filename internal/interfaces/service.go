@@ -35,7 +35,7 @@ type AuthService interface {
 // TokenService определяет интерфейс для работы с токенами
 type TokenService interface {
 	// SaveToken сохраняет новый токен в хранилище
-	SaveToken(token string)
+	SaveToken(name string, token string)
 }
 
 // ClientService определяет интерфейс для клиентского сервиса

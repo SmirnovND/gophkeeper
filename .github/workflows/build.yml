@@ -26,14 +26,14 @@ jobs:
       - name: Archive builds
         run: |
           mkdir -p artifacts
-          cp build/gophkeeper-client-windows-amd64.exe artifacts/
-          cp build/gophkeeper-client-linux-amd64 artifacts/
-          cp build/gophkeeper-client-darwin-amd64 artifacts/
-          cp build/gophkeeper-client-darwin-arm64 artifacts/
-          tar -czvf artifacts/gophkeeper-client-builds.tar.gz -C artifacts .
+          cp build/passcli-windows-amd64.exe artifacts/
+          cp build/passcli-linux-amd64 artifacts/
+          cp build/passcli-darwin-amd64 artifacts/
+          cp build/passcli-darwin-arm64 artifacts/
+          tar -czvf artifacts/passcli-builds.tar.gz -C artifacts .
 
       - name: Upload builds
         uses: actions/upload-artifact@v4
         with:
-          name: gophkeeper-client-builds
-          path: artifacts/gophkeeper-client-builds.tar.gz
+          name: passcli-builds
+          path: artifacts/passcli-builds.tar.gz

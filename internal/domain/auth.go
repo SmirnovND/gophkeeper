@@ -3,7 +3,7 @@ package domain
 import "github.com/golang-jwt/jwt/v4"
 
 type Credentials struct {
-	Id       int    `json:"-" swaggerignore:"true"`
+	Id       string `json:"-" swaggerignore:"true"`
 	Login    string `json:"login"`
 	Password string `json:"password"`
 	PassHash string `json:"-" swaggerignore:"true"`

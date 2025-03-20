@@ -11,14 +11,14 @@ type UserRepo struct {
 	db interfaces.DB
 }
 
-func NewUserRepo(db interfaces.DB) *UserRepo {
+func NewUserRepo(db interfaces.DB) interfaces.UserRepo {
 	return &UserRepo{
 		db: db,
 	}
 }
 
 func (r *UserRepo) FindUser(login string) (*domain.User, error) {
-	query := `SELECT id, login, pass_hash FROM "user" WHERE login = $1 LIMIT 1`
+	query := `SELECT id, login, pass_hash FROM "users"	 WHERE login = $1 LIMIT 1`
 	row := r.db.QueryRow(query, login)
 
 	user := &domain.User{}
@@ -37,7 +37,7 @@ func (r *UserRepo) SaveUser(user *domain.User) error {
 	exec := r.db.QueryRow
 
 	// Запрос с RETURNING id, чтобы получить вставленный id
-	query := `INSERT INTO "user" (login, pass_hash) VALUES ($1, $2) RETURNING id`
+	query := `INSERT INTO "users"	 (login, pass_hash) VALUES ($1, $2) RETURNING id`
 
 	// Выполняем запрос и получаем id
 	err := exec(query, user.Login, user.PassHash).Scan(&user.Id)

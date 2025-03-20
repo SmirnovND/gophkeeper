@@ -8,7 +8,7 @@ type Command struct {
 
 func NewCommand(
 	ClientUseCase interfaces.ClientUseCase,
-) *Command {
+) interfaces.Command {
 	return &Command{
 		clientUseCase: ClientUseCase,
 	}

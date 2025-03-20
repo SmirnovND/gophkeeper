@@ -15,7 +15,7 @@ type AuthUseCase struct {
 func NewAuthUseCase(
 	UserService interfaces.UserService,
 	AuthService interfaces.AuthService,
-) *AuthUseCase {
+) interfaces.AuthUseCase {
 	return &AuthUseCase{
 		userService: UserService,
 		authService: AuthService,
@@ -32,8 +32,8 @@ func (a *AuthUseCase) Register(w http.ResponseWriter, credentials *domain.Creden
 	}
 
 	if err != domain.ErrNotFound {
-		http.Error(w, "Error", http.StatusInternalServerError)
-		return "", fmt.Errorf("error finding user: %w", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return "", fmt.Errorf(err.Error()+" error finding user: %w", err)
 	}
 
 	var user *domain.User
@@ -66,10 +66,10 @@ func (a *AuthUseCase) Login(w http.ResponseWriter, credentials *domain.Credentia
 	user, err := a.userService.FindUser(credentials.Login)
 	if err != nil {
 		if err == domain.ErrNotFound {
-			http.Error(w, "Error", http.StatusUnauthorized)
+			http.Error(w, "Error: user not found", http.StatusUnauthorized)
 			return "", fmt.Errorf("user not found")
 		} else {
-			http.Error(w, "Error", http.StatusInternalServerError)
+			http.Error(w, "Error: error finding user", http.StatusInternalServerError)
 			return "", fmt.Errorf("error finding user: %w", err)
 		}
 	}
@@ -77,7 +77,7 @@ func (a *AuthUseCase) Login(w http.ResponseWriter, credentials *domain.Credentia
 	// Проверяем пароль
 	passValid := a.authService.CheckPasswordHash(credentials.Password, user.PassHash)
 	if !passValid {
-		http.Error(w, "Error", http.StatusUnauthorized)
+		http.Error(w, "Error: invalid password", http.StatusUnauthorized)
 		return "", fmt.Errorf("invalid password")
 	}
 

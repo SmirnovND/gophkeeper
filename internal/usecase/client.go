@@ -13,7 +13,7 @@ type ClientUseCase struct {
 func NewClientUseCase(
 	TokenService interfaces.TokenService,
 	ClientService interfaces.ClientService,
-) *ClientUseCase {
+) interfaces.ClientUseCase {
 	return &ClientUseCase{
 		TokenService:  TokenService,
 		ClientService: ClientService,
@@ -28,7 +28,7 @@ func (c *ClientUseCase) Login(username string, password string) error {
 	}
 
 	// Сохраняем полученный токен
-	c.TokenService.SaveToken(token)
+	c.TokenService.SaveToken(username, token)
 	return nil
 }
 
@@ -40,6 +40,6 @@ func (c *ClientUseCase) Register(username string, password string) error {
 	}
 
 	// Сохраняем полученный токен
-	c.TokenService.SaveToken(token)
+	c.TokenService.SaveToken(username, token)
 	return nil
 }

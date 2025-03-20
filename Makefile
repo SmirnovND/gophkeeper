@@ -19,7 +19,7 @@ help:
 	@$(TAB) make cover-func - покрытие по функциям
 	@$(TAB) make cover-percent - процент покрытия тестами\(читаем из фаила отчета\)
 	@$(TAB) build-client - сборка клиента для текущей платформы
-	@$(TAB) build-client-all - сборка клиента для всех платформ (Windows, Linux, macOS)
+	@$(TAB) build-client-all - сборка клиента для всех платформ \(Windows, Linux, macOS\)
 	@$(TAB) build-client-windows - сборка клиента для Windows
 	@$(TAB) build-client-linux - сборка клиента для Linux
 	@$(TAB) build-client-macos - сборка клиента для macOS
@@ -84,20 +84,20 @@ build-dir:
 
 # Сборка клиента для текущей платформы
 build-client: build-dir
-	go build $(LDFLAGS) -o $(BUILD_DIR)/gophkeeper-client ./cmd/client
+	go build $(LDFLAGS) -o $(BUILD_DIR)/passcli ./cmd/client
 
 # Сборка клиента для Windows
 build-client-windows: build-dir
-	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/gophkeeper-client-windows-amd64.exe ./cmd/client
+	GOOS=windows GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/passcli-windows-amd64.exe ./cmd/client
 
 # Сборка клиента для Linux
 build-client-linux: build-dir
-	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/gophkeeper-client-linux-amd64 ./cmd/client
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/passcli-linux-amd64 ./cmd/client
 
 # Сборка клиента для macOS
 build-client-macos: build-dir
-	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/gophkeeper-client-darwin-amd64 ./cmd/client
-	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o $(BUILD_DIR)/gophkeeper-client-darwin-arm64 ./cmd/client
+	GOOS=darwin GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/passcli-darwin-amd64 ./cmd/client
+	GOOS=darwin GOARCH=arm64 go build $(LDFLAGS) -o $(BUILD_DIR)/passcli-darwin-arm64 ./cmd/client
 
 # Сборка клиента для всех платформ
 build-client-all: build-client-windows build-client-linux build-client-macos

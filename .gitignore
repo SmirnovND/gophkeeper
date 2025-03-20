@@ -2,3 +2,4 @@
 /docker/postgres/data
 /cmd/server/config.yaml
 /cmd/client/config.yaml
+/build/

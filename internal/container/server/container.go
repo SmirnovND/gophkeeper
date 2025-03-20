@@ -1,4 +1,4 @@
-package container
+package server
 
 import (
 	config "github.com/SmirnovND/gophkeeper/internal/config/server"
@@ -8,7 +8,6 @@ import (
 	"github.com/SmirnovND/gophkeeper/internal/service"
 	"github.com/SmirnovND/gophkeeper/internal/usecase"
 	"github.com/SmirnovND/toolbox/pkg/db"
-	"github.com/SmirnovND/toolbox/pkg/http"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"go.uber.org/dig"
@@ -41,7 +40,6 @@ func (c *Container) provideDependencies() {
 	c.container.Provide(func(db *sqlx.DB) interfaces.DB {
 		return NewDBAdapter(db)
 	})
-	c.container.Provide(http.NewAPIClient)
 }
 
 type DBAdapter struct {

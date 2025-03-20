@@ -12,3 +12,15 @@ type UserRepo interface {
 	// Возвращает ошибку, если произошла ошибка при сохранении.
 	SaveUser(user *domain.User) error
 }
+
+// TokenStorage описывает интерфейс для хранения и управления токенами авторизации.
+type TokenStorage interface {
+	// SaveToken сохраняет токен для.
+	SaveToken(token string)
+
+	// GetToken возвращает токен.
+	GetToken() string
+
+	// ClearToken очищает токен в памяти.
+	ClearToken()
+}

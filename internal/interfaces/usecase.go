@@ -16,3 +16,8 @@ type AuthUseCase interface {
 	// ValidateToken проверяет валидность JWT токена и возвращает claims
 	ValidateToken(token string) (*domain.Claims, error)
 }
+
+type ClientUseCase interface {
+	Login(username string, password string) error
+	Register(username string, password string) error
+}

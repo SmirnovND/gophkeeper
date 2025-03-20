@@ -2,7 +2,7 @@ package main
 
 import (
 	_ "github.com/SmirnovND/gophkeeper/docs"
-	"github.com/SmirnovND/gophkeeper/internal/container"
+	"github.com/SmirnovND/gophkeeper/internal/container/server"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"github.com/SmirnovND/gophkeeper/internal/router"
 	"github.com/SmirnovND/toolbox/pkg/logger"
@@ -19,7 +19,7 @@ func main() {
 }
 
 func Run() error {
-	diContainer := container.NewContainer()
+	diContainer := server.NewContainer()
 
 	var cf interfaces.ConfigServer
 	diContainer.Invoke(func(c interfaces.ConfigServer) {

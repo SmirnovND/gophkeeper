@@ -31,3 +31,22 @@ type AuthService interface {
 	// SetResponseAuthData устанавливает данные авторизации в HTTP-ответе
 	SetResponseAuthData(w http.ResponseWriter, token string)
 }
+
+// TokenService определяет интерфейс для работы с токенами
+type TokenService interface {
+	// SaveToken сохраняет новый токен в хранилище
+	SaveToken(token string)
+}
+
+// ClientService определяет интерфейс для клиентского сервиса
+type ClientService interface {
+	// Login выполняет запрос к API сервера для аутентификации пользователя и получения токена
+	Login(login string, password string) (string, error)
+
+	// Register выполняет запрос к API сервера для регистрации пользователя и получения токена
+	Register(login string, password string) (string, error)
+
+	// Методы UserService, необходимые для реализации интерфейса
+	FindUser(login string) (*domain.User, error)
+	SaveUser(login string, password string) (*domain.User, error)
+}

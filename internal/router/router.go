@@ -2,7 +2,7 @@ package router
 
 import (
 	"fmt"
-	"github.com/SmirnovND/gophkeeper/internal/container"
+	"github.com/SmirnovND/gophkeeper/internal/container/server"
 	"github.com/SmirnovND/gophkeeper/internal/controllers"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"github.com/go-chi/chi/v5"
@@ -11,7 +11,7 @@ import (
 	"net/http"
 )
 
-func Handler(diContainer *container.Container) http.Handler {
+func Handler(diContainer *server.Container) http.Handler {
 	var HealthcheckController *controllers.HealthcheckController
 	var AuthController *controllers.AuthController
 	var cf interfaces.ConfigServer

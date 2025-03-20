@@ -9,32 +9,18 @@ import (
 )
 
 type Config struct {
-	Db  `yaml:"db"`
 	App `yaml:"app"`
 }
 
-type Db struct {
-	Dsn string `yaml:"dsn"`
-}
-
 type App struct {
-	JwtSecret string `yaml:"jwt_secret"`
-	RunAddr   string `yaml:"run_addr"`
+	ServerAddr string `yaml:"server_addr"`
 }
 
-func (c *Config) GetDBDsn() string {
-	return c.Db.Dsn
+func (c *Config) GetServerAddr() string {
+	return c.App.ServerAddr
 }
 
-func (c *Config) GetJwtSecret() string {
-	return c.App.JwtSecret
-}
-
-func (c *Config) GetRunAddr() string {
-	return c.App.RunAddr
-}
-
-func NewConfig() interfaces.ConfigServer {
+func NewConfig() interfaces.ConfigClient {
 	defer func() {
 		if err := recover(); err != nil {
 			log.Println(err)

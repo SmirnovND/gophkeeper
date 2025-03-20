@@ -23,14 +23,18 @@ jobs:
       - name: Build client for all platforms
         run: make build-client-all
 
-      - name: Archive builds
+      - name: Prepare artifacts directory
+        run: mkdir -p artifacts
+
+      - name: Copy build files
         run: |
-          mkdir -p artifacts
           cp build/passcli-windows-amd64.exe artifacts/
           cp build/passcli-linux-amd64 artifacts/
           cp build/passcli-darwin-amd64 artifacts/
           cp build/passcli-darwin-arm64 artifacts/
-          tar -czvf artifacts/passcli-builds.tar.gz -C artifacts .
+
+      - name: Archive builds
+        run: tar -czvf artifacts/passcli-builds.tar.gz -C artifacts .
 
       - name: Upload builds
         uses: actions/upload-artifact@v4

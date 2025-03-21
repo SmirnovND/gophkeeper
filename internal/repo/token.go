@@ -29,7 +29,7 @@ func (s *TokenStorage) SaveToken(name, token string) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println(configPath)
 	// Загружаем существующие данные, если они есть
 	existingData, err := s.loadAllTokens(configPath)
 	if err != nil && !os.IsNotExist(err) {

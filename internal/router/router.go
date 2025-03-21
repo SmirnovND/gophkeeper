@@ -14,14 +14,17 @@ import (
 func Handler(diContainer *server.Container) http.Handler {
 	var HealthcheckController *controllers.HealthcheckController
 	var AuthController *controllers.AuthController
+	var FileController *controllers.FileController
 	var cf interfaces.ConfigServer
 	err := diContainer.Invoke(func(
 		c interfaces.ConfigServer,
 		healthcheckControl *controllers.HealthcheckController,
 		authControl *controllers.AuthController,
+		fileControl *controllers.FileController,
 	) {
 		HealthcheckController = healthcheckControl
 		AuthController = authControl
+		FileController = fileControl
 		cf = c
 	})
 	if err != nil {
@@ -38,6 +41,7 @@ func Handler(diContainer *server.Container) http.Handler {
 
 	r.Post("/api/user/register", AuthController.HandleRegisterJSON)
 	r.Post("/api/user/login", AuthController.HandleLoginJSON)
+	r.Post("/api/file/upload", FileController.HandleUploadFile)
 
 	r.Get("/ping", HealthcheckController.HandlePing)
 

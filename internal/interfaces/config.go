@@ -4,8 +4,8 @@ type ConfigServer interface {
 	GetJwtSecret() string
 	GetDBDsn() string
 	GetRunAddr() string
-}
-
-type ConfigClient interface {
-	GetServerAddr() string
+	GetS3BucketName() string
+	GetS3Region() string
+	GetS3AccessKey() string
+	GetS3SecretKey() string
 }

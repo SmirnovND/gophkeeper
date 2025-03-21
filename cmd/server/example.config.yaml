@@ -3,3 +3,8 @@ app:
   run_addr: "127.0.0.1:8085"
 db:
   dsn: "postgresql://developer:developer@localhost:5432/gophkeeper?sslmode=disable"
+s3:
+  bucket_name: "gophkeeper"
+  region: "us-east-1"
+  access_key_id: ""
+  secret_access_key: ""

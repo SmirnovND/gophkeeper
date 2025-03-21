@@ -10,14 +10,14 @@ import (
 )
 
 type ClientService struct {
-	client       *http.Client
-	configClient interfaces.ConfigClient
+	client     *http.Client
+	serverAddr string
 }
 
-func NewClientService(configClient interfaces.ConfigClient) interfaces.ClientService {
+func NewClientService(serverAddr string) interfaces.ClientService {
 	return &ClientService{
-		client:       &http.Client{},
-		configClient: configClient,
+		client:     &http.Client{},
+		serverAddr: serverAddr,
 	}
 }
 
@@ -43,7 +43,7 @@ func (c *ClientService) sendRequest(method, url string, data interface{}) (*http
 
 func (c *ClientService) Login(login, password string) (string, error) {
 	credentials := domain.Credentials{Login: login, Password: password}
-	resp, err := c.sendRequest("POST", "http://localhost:8085/login", credentials)
+	resp, err := c.sendRequest("POST", "http://"+c.serverAddr+"/api/user/login", credentials)
 	if err != nil {
 		return "", err
 	}
@@ -63,7 +63,7 @@ func (c *ClientService) Login(login, password string) (string, error) {
 
 func (c *ClientService) Register(login, password string) (string, error) {
 	credentials := domain.Credentials{Login: login, Password: password}
-	resp, err := c.sendRequest("POST", "http://localhost:8085/register", credentials)
+	resp, err := c.sendRequest("POST", "http://"+c.serverAddr+"/api/user/register", credentials)
 	if err != nil {
 		return "", err
 	}

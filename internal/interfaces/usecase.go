@@ -21,3 +21,7 @@ type ClientUseCase interface {
 	Login(username string, password string) error
 	Register(username string, password string) error
 }
+
+type FileUseCase interface {
+	UploadFile(w http.ResponseWriter, fileData *domain.FileData)
+}

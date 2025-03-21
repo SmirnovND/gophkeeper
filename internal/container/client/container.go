@@ -2,7 +2,7 @@ package client
 
 import (
 	"github.com/SmirnovND/gophkeeper/internal/command"
-	config "github.com/SmirnovND/gophkeeper/internal/config/client"
+	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"github.com/SmirnovND/gophkeeper/internal/repo"
 	"github.com/SmirnovND/gophkeeper/internal/service"
 	"github.com/SmirnovND/gophkeeper/internal/usecase"
@@ -15,11 +15,11 @@ type Container struct {
 	container *dig.Container
 }
 
-func NewContainer() *Container {
+func NewContainer(serverAddress string) *Container {
 	c := &Container{container: dig.New()}
 	c.provideDependencies()
 	c.provideRepo()
-	c.provideService()
+	c.provideService(serverAddress)
 	c.provideUsecase()
 	c.provideCommand()
 	return c
@@ -27,8 +27,6 @@ func NewContainer() *Container {
 
 // provideDependencies - функция, регистрирующая зависимости
 func (c *Container) provideDependencies() {
-	// Регистрируем конфигурацию
-	c.container.Provide(config.NewConfig)
 }
 
 func (c *Container) provideUsecase() {
@@ -39,9 +37,12 @@ func (c *Container) provideRepo() {
 	c.container.Provide(repo.NewTokenStorage)
 }
 
-func (c *Container) provideService() {
+func (c *Container) provideService(serverAddress string) {
 	c.container.Provide(service.NewTokenService)
-	c.container.Provide(service.NewClientService)
+
+	c.container.Provide(func() interfaces.ClientService {
+		return service.NewClientService(serverAddress)
+	})
 }
 
 func (c *Container) provideCommand() {

@@ -9,13 +9,20 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var (
+	version       string = "dev"
+	buildDate     string = "unknown"
+	serverAddress string = "127.0.0.1:8080"
+)
+
 var rootCmd = &cobra.Command{
 	Use:   "passcli",
 	Short: "CLI клиент для управления паролями",
 }
 
 func main() {
-	diContainer := client.NewContainer()
+	fmt.Println(serverAddress)
+	diContainer := client.NewContainer(serverAddress)
 	var Command interfaces.Command
 	diContainer.Invoke(func(cmd interfaces.Command) {
 		Command = cmd

@@ -8,6 +8,10 @@ import (
 	"github.com/SmirnovND/gophkeeper/internal/service"
 	"github.com/SmirnovND/gophkeeper/internal/usecase"
 	"github.com/SmirnovND/toolbox/pkg/db"
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/credentials"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"go.uber.org/dig"
@@ -40,6 +44,21 @@ func (c *Container) provideDependencies() {
 	c.container.Provide(func(db *sqlx.DB) interfaces.DB {
 		return NewDBAdapter(db)
 	})
+
+	c.container.Provide(func(configServer interfaces.ConfigServer) *s3.S3 {
+		sess := session.Must(session.NewSession(&aws.Config{
+			Region:                        aws.String(configServer.GetS3Region()),
+			CredentialsChainVerboseErrors: aws.Bool(true),
+			Credentials: credentials.NewStaticCredentials(
+				configServer.GetS3AccessKey(),
+				configServer.GetS3SecretKey(),
+				"",
+			),
+		}))
+
+		return s3.New(sess)
+	})
+
 }
 
 type DBAdapter struct {
@@ -56,6 +75,7 @@ func (d *DBAdapter) QueryRow(query string, args ...interface{}) *sqlx.Row {
 
 func (c *Container) provideUsecase() {
 	c.container.Provide(usecase.NewAuthUseCase)
+	c.container.Provide(usecase.NewCloudUseCase)
 }
 
 func (c *Container) provideRepo() {
@@ -65,11 +85,17 @@ func (c *Container) provideRepo() {
 func (c *Container) provideService() {
 	c.container.Provide(service.NewAuthService)
 	c.container.Provide(service.NewUserService)
+
+	c.container.Provide(func(svc *s3.S3, configServer interfaces.ConfigServer) interfaces.AwsService {
+		return service.NewAws(svc, configServer.GetS3BucketName())
+	})
+
 }
 
 func (c *Container) provideController() {
 	c.container.Provide(controllers.NewAuthController)
 	c.container.Provide(controllers.NewHealthcheckController)
+	c.container.Provide(controllers.NewFileController)
 }
 
 // Invoke - функция для вызова и инжекта зависимостей

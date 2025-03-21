@@ -11,10 +11,18 @@ import (
 type Config struct {
 	Db  `yaml:"db"`
 	App `yaml:"app"`
+	S3  `yaml:"s3"`
 }
 
 type Db struct {
 	Dsn string `yaml:"dsn"`
+}
+
+type S3 struct {
+	BucketName string `yaml:"bucket_name"`
+	Region     string `yaml:"region"`
+	AccessKey  string `yaml:"access_key"`
+	SecretKey  string `yaml:"secret_key"`
 }
 
 type App struct {
@@ -32,6 +40,22 @@ func (c *Config) GetJwtSecret() string {
 
 func (c *Config) GetRunAddr() string {
 	return c.App.RunAddr
+}
+
+func (c *Config) GetS3BucketName() string {
+	return c.S3.BucketName
+}
+
+func (c *Config) GetS3Region() string {
+	return c.S3.Region
+}
+
+func (c *Config) GetS3AccessKey() string {
+	return c.S3.AccessKey
+}
+
+func (c *Config) GetS3SecretKey() string {
+	return c.S3.SecretKey
 }
 
 func NewConfig() interfaces.ConfigServer {

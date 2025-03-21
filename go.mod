@@ -4,6 +4,7 @@ go 1.24.1
 
 require (
 	github.com/SmirnovND/toolbox v0.0.0-20250315123152-80b7aec547f9
+	github.com/aws/aws-sdk-go v1.55.6
 	github.com/go-chi/chi/v5 v5.2.1
 	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/jmoiron/sqlx v1.4.0
@@ -28,6 +29,7 @@ require (
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect

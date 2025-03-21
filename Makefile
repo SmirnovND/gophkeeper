@@ -3,7 +3,14 @@ TAB=echo "\t"
 CURRENT_DIR = $(shell pwd)
 BUILD_DIR = $(CURRENT_DIR)/build
 VERSION = $(shell git describe --tags --always --dirty || echo "dev")
-LDFLAGS = -ldflags "-X main.version=$(VERSION)"
+BUILD_DATE = $(shell date -u '+%Y-%m-%d_%H:%M:%S')
+SERVER_ADDRESS ?= 127.0.0.1:8085
+
+# Обновленные LDFLAGS с дополнительными параметрами
+LDFLAGS = -ldflags "\
+-X main.version=$(VERSION) \
+-X main.buildDate=$(BUILD_DATE) \
+-X main.serverAddress=$(SERVER_ADDRESS)"
 
 help:
 	@$(TAB) up-server - запустить сервер
@@ -27,6 +34,9 @@ help:
 
 up-server:
 	go run ./cmd/server/main.go ./cmd/server/config.yaml
+
+up-client:
+	go run ./cmd/client/main.go ./cmd/client/config.yaml
 
 up-docker:
 	docker-compose up -d

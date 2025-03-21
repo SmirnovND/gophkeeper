@@ -50,3 +50,7 @@ type ClientService interface {
 	FindUser(login string) (*domain.User, error)
 	SaveUser(login string, password string) (*domain.User, error)
 }
+
+type AwsService interface {
+	GenerateUploadLink(fileName string) (string, error)
+}

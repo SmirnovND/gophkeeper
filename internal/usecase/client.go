@@ -32,7 +32,10 @@ func (c *ClientUseCase) Login(username string, password string) error {
 	return nil
 }
 
-func (c *ClientUseCase) Register(username string, password string) error {
+func (c *ClientUseCase) Register(username string, password string, passwordCheck string) error {
+	if password != passwordCheck {
+		return fmt.Errorf("пароли не совпадают")
+	}
 	// Получаем токен через ClientService
 	token, err := c.ClientService.Register(username, password)
 	if err != nil {

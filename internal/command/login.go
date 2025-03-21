@@ -27,3 +27,55 @@ func (c *Command) Login() *cobra.Command {
 		},
 	}
 }
+
+func (c *Command) RegisterCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "register",
+		Short: "Регистрация в сервисе",
+		Run: func(cmd *cobra.Command, args []string) {
+			var username, password, passwordCheck string
+			fmt.Print("Введите логин: ")
+			fmt.Scanln(&username)
+
+			fmt.Print("Введите пароль: ")
+			fmt.Scanln(&password)
+
+			fmt.Print("Введите пароль еще раз: ")
+			fmt.Scanln(&passwordCheck)
+
+			err := c.clientUseCase.Register(username, password, passwordCheck)
+			if err != nil {
+				fmt.Println("Ошибка регистрации:", err)
+				return
+			}
+
+			fmt.Println("Успешная регистрация!")
+		},
+	}
+}
+
+func (c *Command) UploadCmd() *cobra.Command {
+	return &cobra.Command{
+		Use:   "upload",
+		Short: "Хранение текстовых/бинарных данных",
+		Run: func(cmd *cobra.Command, args []string) {
+			var username, password, passwordCheck string
+			fmt.Print("Введите название фаила: ")
+			fmt.Scanln(&username)
+
+			fmt.Print("Введите пароль: ")
+			fmt.Scanln(&password)
+
+			fmt.Print("Введите пароль еще раз: ")
+			fmt.Scanln(&passwordCheck)
+
+			err := c.clientUseCase.Register(username, password, passwordCheck)
+			if err != nil {
+				fmt.Println("Ошибка регистрации:", err)
+				return
+			}
+
+			fmt.Println("Успешная регистрация!")
+		},
+	}
+}

@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	config "github.com/SmirnovND/gophkeeper/internal/config/server"
 	"github.com/SmirnovND/gophkeeper/internal/controllers"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
@@ -8,12 +9,10 @@ import (
 	"github.com/SmirnovND/gophkeeper/internal/service"
 	"github.com/SmirnovND/gophkeeper/internal/usecase"
 	"github.com/SmirnovND/toolbox/pkg/db"
-	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
-	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/minio/minio-go/v7"
+	"github.com/minio/minio-go/v7/pkg/credentials"
 	"go.uber.org/dig"
 )
 
@@ -45,18 +44,17 @@ func (c *Container) provideDependencies() {
 		return NewDBAdapter(db)
 	})
 
-	c.container.Provide(func(configServer interfaces.ConfigServer) *s3.S3 {
-		sess := session.Must(session.NewSession(&aws.Config{
-			Region:                        aws.String(configServer.GetS3Region()),
-			CredentialsChainVerboseErrors: aws.Bool(true),
-			Credentials: credentials.NewStaticCredentials(
-				configServer.GetS3AccessKey(),
-				configServer.GetS3SecretKey(),
-				"",
-			),
-		}))
+	c.container.Provide(func(configServer interfaces.ConfigServer) *minio.Client {
+		client, err := minio.New(configServer.GetMinioHost(), &minio.Options{
+			Creds:  credentials.NewStaticV4(configServer.GetMinioAccessKey(), configServer.GetMinioSecretKey(), ""),
+			Secure: false, // Без HTTPS для локальной установки
+		})
+		if err != nil {
+			// Исправление: добавляем сообщение об ошибке в вызов panic
+			panic(fmt.Sprintf("Ошибка создания MinIO клиента: %v", err))
+		}
 
-		return s3.New(sess)
+		return client
 	})
 
 }
@@ -86,8 +84,8 @@ func (c *Container) provideService() {
 	c.container.Provide(service.NewAuthService)
 	c.container.Provide(service.NewUserService)
 
-	c.container.Provide(func(svc *s3.S3, configServer interfaces.ConfigServer) interfaces.AwsService {
-		return service.NewAws(svc, configServer.GetS3BucketName())
+	c.container.Provide(func(minio *minio.Client, configServer interfaces.ConfigServer) interfaces.CloudService {
+		return service.NewCloud(minio, configServer.GetMinioBucketName())
 	})
 
 }

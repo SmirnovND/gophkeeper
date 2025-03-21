@@ -9,11 +9,11 @@ import (
 )
 
 type FileUseCase struct {
-	awsService interfaces.AwsService
+	awsService interfaces.CloudService
 }
 
 func NewCloudUseCase(
-	awsService interfaces.AwsService,
+	awsService interfaces.CloudService,
 ) interfaces.FileUseCase {
 	return &FileUseCase{
 		awsService: awsService,

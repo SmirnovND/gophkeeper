@@ -51,6 +51,6 @@ type ClientService interface {
 	SaveUser(login string, password string) (*domain.User, error)
 }
 
-type AwsService interface {
+type CloudService interface {
 	GenerateUploadLink(fileName string) (string, error)
 }

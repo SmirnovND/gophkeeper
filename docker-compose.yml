@@ -13,6 +13,21 @@ services:
             - 5432:5432
         networks:
             - net
+    minio:
+        image: minio/minio:latest
+        container_name: minio
+        environment:
+            - MINIO_ROOT_USER=admin
+            - MINIO_ROOT_PASSWORD=adminminio
+        volumes:
+            - ./docker/minio/data:/data
+        ports:
+            - 9010:9000
+            - 9011:9001
+        command: server /data
+        networks:
+            - net
+        restart: unless-stopped
 networks:
     net:
         driver: bridge

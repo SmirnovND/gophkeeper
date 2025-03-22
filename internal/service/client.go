@@ -130,12 +130,27 @@ func (c *ClientService) GetUploadLink(label string, extension string) (string, e
 }
 
 func (c *ClientService) SendFileToServer(url string, file *os.File) (string, error) {
+	// Получаем информацию о файле для определения его размера
+	fileInfo, err := file.Stat()
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Ошибка при получении информации о файле: %v\n", err))
+	}
+
+	// Сбрасываем указатель чтения файла в начало
+	_, err = file.Seek(0, 0)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Ошибка при перемещении указателя файла: %v\n", err))
+	}
+
 	// Загрузка файла
 	req, err := http.NewRequest("PUT", url, file)
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("Ошибка при подготовке запроса на загрузку: %v\n", err))
 	}
+
+	// Устанавливаем заголовки
 	req.Header.Set("Content-Type", "application/octet-stream")
+	req.ContentLength = fileInfo.Size() // Устанавливаем размер файла в заголовке Content-Length
 
 	client := &http.Client{}
 	fileUploadResp, err := client.Do(req)

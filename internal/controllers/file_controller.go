@@ -8,10 +8,10 @@ import (
 )
 
 type FileController struct {
-	FileUseCase interfaces.FileUseCase
+	FileUseCase interfaces.CloudUseCase
 }
 
-func NewFileController(FileUseCase interfaces.FileUseCase) *FileController {
+func NewFileController(FileUseCase interfaces.CloudUseCase) *FileController {
 	return &FileController{
 		FileUseCase: FileUseCase,
 	}
@@ -22,5 +22,5 @@ func (f *FileController) HandleUploadFile(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return
 	}
-	f.FileUseCase.UploadFile(w, fileData)
+	f.FileUseCase.GenerateUploadLink(w, fileData)
 }

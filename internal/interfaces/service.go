@@ -3,6 +3,7 @@ package interfaces
 import (
 	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"net/http"
+	"os"
 )
 
 // UserService определяет интерфейс для работы с пользователями
@@ -46,9 +47,9 @@ type ClientService interface {
 	// Register выполняет запрос к API сервера для регистрации пользователя и получения токена
 	Register(login string, password string) (string, error)
 
-	// Методы UserService, необходимые для реализации интерфейса
-	FindUser(login string) (*domain.User, error)
-	SaveUser(login string, password string) (*domain.User, error)
+	GetUploadLink(label string, extension string) (string, error)
+
+	SendFileToServer(url string, file *os.File) (string, error)
 }
 
 type CloudService interface {

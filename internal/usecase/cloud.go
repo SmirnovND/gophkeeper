@@ -8,19 +8,19 @@ import (
 	"net/http"
 )
 
-type FileUseCase struct {
-	awsService interfaces.CloudService
+type CloudUseCase struct {
+	cloudService interfaces.CloudService
 }
 
 func NewCloudUseCase(
-	awsService interfaces.CloudService,
-) interfaces.FileUseCase {
-	return &FileUseCase{
-		awsService: awsService,
+	cloudService interfaces.CloudService,
+) interfaces.CloudUseCase {
+	return &CloudUseCase{
+		cloudService: cloudService,
 	}
 }
 
-func (c *FileUseCase) UploadFile(w http.ResponseWriter, fileData *domain.FileData) {
+func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, fileData *domain.FileData) {
 	// Валидация входящего объекта FileData
 	if fileData == nil || fileData.Name == "" || fileData.Extension == "" {
 		http.Error(w, "Неверные данные файла", http.StatusBadRequest)
@@ -31,7 +31,7 @@ func (c *FileUseCase) UploadFile(w http.ResponseWriter, fileData *domain.FileDat
 	fileName := fmt.Sprintf("%s.%s", fileData.Name, fileData.Extension)
 
 	// Получаем ссылку для загрузки
-	uploadLink, err := c.awsService.GenerateUploadLink(fileName)
+	uploadLink, err := c.cloudService.GenerateUploadLink(fileName)
 	if err != nil {
 		http.Error(w, "Ошибка при генерации ссылки: "+err.Error(), http.StatusInternalServerError)
 		return

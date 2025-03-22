@@ -3,10 +3,13 @@ package service
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
+	"io/ioutil"
 	"net/http"
+	"os"
 )
 
 type ClientService struct {
@@ -83,10 +86,67 @@ func (c *ClientService) Register(login, password string) (string, error) {
 	return token, nil
 }
 
-func (c *ClientService) FindUser(login string) (*domain.User, error) {
-	return nil, domain.ErrNotFound
+func (c *ClientService) GetUploadLink(label string, extension string) (string, error) {
+	// Запрос на получение ссылки для загрузки файла
+	url := "http://" + c.serverAddr + "/api/file/upload"
+
+	// Создаем структуру для запроса с параметрами из аргументов функции
+	requestData := struct {
+		Name      string `json:"name"`
+		Extension string `json:"extension"`
+	}{
+		Name:      label,
+		Extension: extension,
+	}
+
+	// Преобразуем структуру в JSON
+	jsonData, err := json.Marshal(requestData)
+	if err != nil {
+		return "", fmt.Errorf("ошибка при маршалинге данных: %w", err)
+	}
+
+	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Ошибка при запросе к серверу: %v\n", err))
+	}
+	defer resp.Body.Close()
+
+	// Чтение ответа сервера
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Ошибка при чтении ответа сервера: %v\n", err))
+	}
+
+	// Извлекаем URL из ответа
+	var response struct {
+		URL         string `json:"url"`
+		Description string `json:"description"`
+	}
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		return "", errors.New(fmt.Sprintf("Ошибка при парсинге ответа: %v\n", err))
+	}
+
+	return response.URL, nil
 }
 
-func (c *ClientService) SaveUser(login, password string) (*domain.User, error) {
-	return nil, fmt.Errorf("метод не реализован на клиенте")
+func (c *ClientService) SendFileToServer(url string, file *os.File) (string, error) {
+	// Загрузка файла
+	req, err := http.NewRequest("PUT", url, file)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Ошибка при подготовке запроса на загрузку: %v\n", err))
+	}
+	req.Header.Set("Content-Type", "application/octet-stream")
+
+	client := &http.Client{}
+	fileUploadResp, err := client.Do(req)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Ошибка при загрузке файла: %v\n", err))
+	}
+	defer fileUploadResp.Body.Close()
+
+	if fileUploadResp.StatusCode == http.StatusOK {
+		return "Файл успешно загружен!", nil
+	} else {
+		return "", errors.New(fmt.Sprintf("Ошибка при загрузке файла: %s\n", fileUploadResp.Status))
+	}
 }

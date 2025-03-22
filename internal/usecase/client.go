@@ -6,6 +6,8 @@ import (
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"github.com/SmirnovND/gophkeeper/pkg"
 	"os"
+	"path/filepath"
+	"strings"
 )
 
 type ClientUseCase struct {
@@ -52,6 +54,26 @@ func (c *ClientUseCase) Register(username string, password string, passwordCheck
 
 // Upload - функция для загрузки файла на сервер.
 func (c *ClientUseCase) Upload(filePath string, label string) (string, error) {
+	// Проверяем, существует ли файл
+	fileInfo, err := os.Stat(filePath)
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Ошибка при проверке файла: %v\n", err))
+	}
+
+	// Проверяем, что это файл, а не директория
+	if fileInfo.IsDir() {
+		return "", errors.New("Указанный путь является директорией, а не файлом")
+	}
+
+	// Проверяем тип файла (текстовый или бинарный)
+	isText := isTextFile(filePath)
+	isBinary := isBinaryFile(filePath)
+
+	// Проверяем, что файл является текстовым или бинарным
+	if !isText && !isBinary {
+		return "", errors.New("Файл не является ни текстовым, ни бинарным")
+	}
+
 	// Открываем файл
 	file, err := os.Open(filePath)
 	if err != nil {
@@ -65,5 +87,32 @@ func (c *ClientUseCase) Upload(filePath string, label string) (string, error) {
 		return "", errors.New(fmt.Sprintf("Ошибка при получении ссылки на загрузку: %v\n", err))
 	}
 
+	// Выводим информацию о типе файла
+	fileType := "бинарный"
+	if isText {
+		fileType = "текстовый"
+	}
+	fmt.Printf("Загрузка %s файла: %s\n", fileType, filePath)
+
 	return c.ClientService.SendFileToServer(url, file)
+}
+
+// isTextFile проверяет, является ли файл текстовым
+func isTextFile(filePath string) bool {
+	// Проверка по расширению файла (быстрый метод)
+	if ".txt" == strings.ToLower(filepath.Ext(filePath)) {
+		return true
+	}
+
+	return false
+}
+
+// isBinaryFile проверяет, является ли файл бинарным
+func isBinaryFile(filePath string) bool {
+	// Проверка по расширению файла (быстрый метод)
+	if ".bin" == strings.ToLower(filepath.Ext(filePath)) {
+		return true
+	}
+
+	return false
 }

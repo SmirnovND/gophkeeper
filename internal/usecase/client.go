@@ -108,22 +108,23 @@ func (c *ClientUseCase) Download(label string) error {
 		return errors.New("Не указана метка файла")
 	}
 
-	// Получаем директорию загрузок
-	downloadsDir := pkg.GetDownloadsDir()
-	// Формируем имя файла из метки
-	outputPath := filepath.Join(downloadsDir, label)
-
 	// Загружаем токен
 	token, err := c.TokenService.LoadToken()
 	if err != nil {
 		return fmt.Errorf("ошибка при загрузке токена: %w", err)
 	}
 
-	// Получаем ссылку на скачивание файла
-	downloadURL, err := c.ClientService.GetDownloadLink(label, token)
+	// Получаем ссылку на скачивание файла и метаданные
+	downloadURL, fileMetadata, err := c.ClientService.GetDownloadLink(label, token)
 	if err != nil {
 		return fmt.Errorf("ошибка при получении ссылки на скачивание: %w", err)
 	}
+
+	// Получаем директорию загрузок
+	downloadsDir := pkg.GetDownloadsDir()
+	// Формируем имя файла из метки и расширения
+	fileName := fmt.Sprintf("%s.%s", label, fileMetadata.Extension)
+	outputPath := filepath.Join(downloadsDir, fileName)
 
 	fmt.Printf("Скачивание файла с меткой '%s'\n", label)
 

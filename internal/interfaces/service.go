@@ -51,7 +51,7 @@ type ClientService interface {
 
 	GetUploadLink(label string, extension string, token string) (string, error)
 
-	GetDownloadLink(label string, token string) (string, error)
+	GetDownloadLink(label string, token string) (string, *domain.FileMetadata, error)
 
 	SendFileToServer(url string, file *os.File) (string, error)
 

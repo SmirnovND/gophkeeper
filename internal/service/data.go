@@ -28,11 +28,10 @@ func (c *DataService) SaveFileMetadata(login string, label string, fileData *dom
 		return fmt.Errorf("Ошибка при поиске пользователя: %w", err)
 	}
 
-	// Создаем метаданные файла
+	// Создаем метаданные файла (сохраняем только имя и расширение, URL не сохраняем)
 	fileMetadata := domain.FileMetadata{
 		FileName:  fileData.Name,
 		Extension: fileData.Extension,
-		URL:       uploadLink,
 	}
 
 	// Преобразуем метаданные в JSON

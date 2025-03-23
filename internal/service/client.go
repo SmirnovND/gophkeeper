@@ -183,14 +183,14 @@ func (c *ClientService) SendFileToServer(url string, file *os.File) (string, err
 	}
 }
 
-func (c *ClientService) GetDownloadLink(label string, token string) (string, error) {
+func (c *ClientService) GetDownloadLink(label string, token string) (string, *domain.FileMetadata, error) {
 	// Формируем URL для запроса на получение ссылки для скачивания
 	url := fmt.Sprintf("http://%s/api/file/download?label=%s", c.serverAddr, label)
 
 	// Создаем запрос
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", fmt.Errorf("ошибка при создании запроса: %w", err)
+		return "", nil, fmt.Errorf("ошибка при создании запроса: %w", err)
 	}
 
 	// Устанавливаем заголовок авторизации
@@ -199,31 +199,32 @@ func (c *ClientService) GetDownloadLink(label string, token string) (string, err
 	// Выполняем запрос
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("ошибка при выполнении запроса: %w", err)
+		return "", nil, fmt.Errorf("ошибка при выполнении запроса: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Проверяем статус ответа
 	if resp.StatusCode != http.StatusOK {
-		return "", fmt.Errorf("ошибка при получении ссылки для скачивания, код ответа: %d", resp.StatusCode)
+		return "", nil, fmt.Errorf("ошибка при получении ссылки для скачивания, код ответа: %d", resp.StatusCode)
 	}
 
 	// Чтение ответа сервера
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", fmt.Errorf("ошибка при чтении ответа сервера: %w", err)
+		return "", nil, fmt.Errorf("ошибка при чтении ответа сервера: %w", err)
 	}
 
-	// Извлекаем URL из ответа
+	// Извлекаем URL и метаданные из ответа
 	var response struct {
-		URL         string `json:"url"`
-		Description string `json:"description"`
+		URL         string              `json:"url"`
+		Description string              `json:"description"`
+		Metadata    domain.FileMetadata `json:"metadata"`
 	}
 	if err := json.Unmarshal(respBody, &response); err != nil {
-		return "", fmt.Errorf("ошибка при парсинге ответа: %w", err)
+		return "", nil, fmt.Errorf("ошибка при парсинге ответа: %w", err)
 	}
 
-	return response.URL, nil
+	return response.URL, &response.Metadata, nil
 }
 
 func (c *ClientService) DownloadFileFromServer(url string, outputPath string) error {

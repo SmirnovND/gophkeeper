@@ -83,9 +83,15 @@ func (c *CloudUseCase) GenerateDownloadLink(w http.ResponseWriter, label string,
 		return
 	}
 
-	response := domain.FileDataResponse{
-		Url:         downloadLink,
+	// Создаем расширенный ответ с метаданными
+	response := struct {
+		URL         string              `json:"url"`
+		Description string              `json:"description"`
+		Metadata    domain.FileMetadata `json:"metadata"`
+	}{
+		URL:         downloadLink,
 		Description: "Скачай файл по этой ссылке",
+		Metadata:    *fileMetadata,
 	}
 
 	// Отправляем ответ

@@ -13,11 +13,11 @@ type UserRepo interface {
 	SaveUser(user *domain.User) error
 }
 
-// TokenStorage описывает интерфейс для хранения и управления токенами авторизации.
+// TokenStorage описывает интерфейс для хранения и управления токеном авторизации.
 type TokenStorage interface {
-	// SaveToken сохраняет токен для.
-	SaveToken(name, token string) error
+	// SaveToken сохраняет токен.
+	SaveToken(token string) error
 
 	// LoadToken загружает токен из файла.
-	LoadToken(name string) (string, error)
+	LoadToken() (string, error)
 }

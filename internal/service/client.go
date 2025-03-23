@@ -44,7 +44,7 @@ func (c *ClientService) sendRequest(method, url string, data interface{}) (*http
 	return resp, nil
 }
 
-func (c *ClientService) Login(login, password string) (string, error) {
+func (c *ClientService) Login(login string, password string) (string, error) {
 	credentials := domain.Credentials{Login: login, Password: password}
 	resp, err := c.sendRequest("POST", "http://"+c.serverAddr+"/api/user/login", credentials)
 	if err != nil {
@@ -86,7 +86,7 @@ func (c *ClientService) Register(login, password string) (string, error) {
 	return token, nil
 }
 
-func (c *ClientService) GetUploadLink(label string, extension string) (string, error) {
+func (c *ClientService) GetUploadLink(label string, extension string, token string) (string, error) {
 	// Запрос на получение ссылки для загрузки файла
 	url := "http://" + c.serverAddr + "/api/file/upload"
 
@@ -105,11 +105,27 @@ func (c *ClientService) GetUploadLink(label string, extension string) (string, e
 		return "", fmt.Errorf("ошибка при маршалинге данных: %w", err)
 	}
 
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(jsonData))
+	// Создаем запрос вместо использования http.Post для добавления заголовка авторизации
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return "", fmt.Errorf("ошибка при создании запроса: %w", err)
+	}
+
+	// Устанавливаем заголовки
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", token)
+
+	// Выполняем запрос
+	resp, err := c.client.Do(req)
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("Ошибка при запросе к серверу: %v\n", err))
 	}
 	defer resp.Body.Close()
+
+	// Проверяем статус ответа
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("ошибка при получении ссылки для загрузки, код ответа: %d", resp.StatusCode)
+	}
 
 	// Чтение ответа сервера
 	respBody, err := ioutil.ReadAll(resp.Body)

@@ -32,6 +32,7 @@ func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, fileData *domai
 
 	// Получаем ссылку для загрузки
 	uploadLink, err := c.cloudService.GenerateUploadLink(fileName)
+
 	if err != nil {
 		http.Error(w, "Ошибка при генерации ссылки: "+err.Error(), http.StatusInternalServerError)
 		return

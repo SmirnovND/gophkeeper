@@ -5,6 +5,7 @@ import (
 	"github.com/SmirnovND/gophkeeper/internal/container/server"
 	"github.com/SmirnovND/gophkeeper/internal/controllers"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
+	"github.com/SmirnovND/toolbox/pkg/auth"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger"
@@ -41,7 +42,10 @@ func Handler(diContainer *server.Container) http.Handler {
 
 	r.Post("/api/user/register", AuthController.HandleRegisterJSON)
 	r.Post("/api/user/login", AuthController.HandleLoginJSON)
-	r.Post("/api/file/upload", FileController.HandleUploadFile)
+
+	r.Post("/api/file/upload", func(w http.ResponseWriter, r *http.Request) {
+		auth.AuthMiddleware(cf.GetJwtSecret(), http.HandlerFunc(FileController.HandleUploadFile)).ServeHTTP(w, r)
+	})
 
 	r.Get("/ping", HealthcheckController.HandlePing)
 

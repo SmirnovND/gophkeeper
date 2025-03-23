@@ -15,7 +15,92 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
-        "/login": {
+        "/api/files/upload": {
+            "post": {
+                "security": [
+                    {
+                        "ApiKeyAuth": []
+                    }
+                ],
+                "description": "Генерирует ссылку для загрузки файла на сервер",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "files"
+                ],
+                "summary": "Загрузка файла",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Bearer токен авторизации",
+                        "name": "Authorization",
+                        "in": "header",
+                        "required": true
+                    },
+                    {
+                        "description": "Информация о загружаемом файле",
+                        "name": "fileData",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/domain.FileData"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Успешная генерация ссылки, возвращает URL для загрузки файла",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Ошибка в формате запроса",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Пользователь не авторизован",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "413": {
+                        "description": "Превышен максимальный размер файла",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Внутренняя ошибка сервера",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/user/login": {
             "post": {
                 "description": "Авторизует пользователя в системе и возвращает токен авторизации",
                 "consumes": [
@@ -79,7 +164,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/register": {
+        "/api/user/register": {
             "post": {
                 "description": "Регистрирует нового пользователя в системе и возвращает токен авторизации",
                 "consumes": [
@@ -152,6 +237,21 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "password": {
+                    "type": "string"
+                }
+            }
+        },
+        "domain.FileData": {
+            "type": "object",
+            "required": [
+                "extension",
+                "name"
+            ],
+            "properties": {
+                "extension": {
+                    "type": "string"
+                },
+                "name": {
                     "type": "string"
                 }
             }

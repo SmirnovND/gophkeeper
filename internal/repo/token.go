@@ -8,11 +8,11 @@ import (
 	"path/filepath"
 )
 
-// TokenStorage - структура для хранения JWT-токенов по пользователям.
+// TokenStorage - структура для хранения JWT-токена.
 type TokenStorage struct {
 }
 
-// AuthData - структура для хранения данных авторизации (токенов).
+// AuthData - структура для хранения данных авторизации (токена).
 type AuthData struct {
 	Token string `json:"token"`
 }
@@ -22,29 +22,24 @@ func NewTokenStorage() interfaces.TokenStorage {
 	return &TokenStorage{}
 }
 
-// SaveToken сохраняет токен для конкретного пользователя.
-func (s *TokenStorage) SaveToken(name, token string) error {
+// SaveToken сохраняет токен.
+func (s *TokenStorage) SaveToken(token string) error {
 	// Получаем путь к файлу с конфигурацией
 	configPath, err := getConfigPath()
 	if err != nil {
 		return err
 	}
-	fmt.Println(configPath)
-	// Загружаем существующие данные, если они есть
-	existingData, err := s.loadAllTokens(configPath)
-	if err != nil && !os.IsNotExist(err) {
+
+	// Создаем директорию, если она не существует
+	dir := filepath.Dir(configPath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
 
-	// Если данных нет, создаем пустую структуру
-	if existingData == nil {
-		existingData = make(map[string]AuthData)
-	}
+	// Создаем структуру с токеном
+	authData := AuthData{Token: token}
 
-	// Сохраняем новый токен по имени пользователя
-	existingData[name] = AuthData{Token: token}
-
-	// Сохраняем обновленные данные
+	// Сохраняем данные
 	file, err := os.Create(configPath)
 	if err != nil {
 		return err
@@ -52,46 +47,35 @@ func (s *TokenStorage) SaveToken(name, token string) error {
 	defer file.Close()
 
 	// Записываем данные в файл
-	return json.NewEncoder(file).Encode(existingData)
+	return json.NewEncoder(file).Encode(authData)
 }
 
-// LoadToken загружает токен для конкретного пользователя по имени.
-func (s *TokenStorage) LoadToken(name string) (string, error) {
+// LoadToken загружает токен.
+func (s *TokenStorage) LoadToken() (string, error) {
 	// Получаем путь к файлу с конфигурацией
 	configPath, err := getConfigPath()
 	if err != nil {
 		return "", err
 	}
 
-	// Загружаем все токены
-	existingData, err := s.loadAllTokens(configPath)
+	// Открываем файл
+	file, err := os.Open(configPath)
 	if err != nil {
 		return "", err
 	}
-
-	// Ищем токен по имени пользователя
-	if data, ok := existingData[name]; ok {
-		return data.Token, nil
-	}
-
-	// Если токен не найден
-	return "", fmt.Errorf("token for user %s not found", name)
-}
-
-// loadAllTokens загружает все токены из файла.
-func (s *TokenStorage) loadAllTokens(configPath string) (map[string]AuthData, error) {
-	file, err := os.Open(configPath)
-	if err != nil {
-		return nil, err
-	}
 	defer file.Close()
 
-	var data map[string]AuthData
-	if err := json.NewDecoder(file).Decode(&data); err != nil {
-		return nil, err
+	// Декодируем данные
+	var authData AuthData
+	if err := json.NewDecoder(file).Decode(&authData); err != nil {
+		return "", err
 	}
 
-	return data, nil
+	// Возвращаем токен
+	if authData.Token == "" {
+		return "", fmt.Errorf("token not found")
+	}
+	return authData.Token, nil
 }
 
 // getConfigPath возвращает путь к файлу конфигурации.

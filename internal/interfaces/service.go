@@ -33,10 +33,12 @@ type AuthService interface {
 	SetResponseAuthData(w http.ResponseWriter, token string)
 }
 
-// TokenService определяет интерфейс для работы с токенами
+// TokenService определяет интерфейс для работы с токеном
 type TokenService interface {
 	// SaveToken сохраняет новый токен в хранилище
-	SaveToken(name string, token string)
+	SaveToken(token string)
+	// LoadToken загружает токен из хранилища
+	LoadToken() (string, error)
 }
 
 // ClientService определяет интерфейс для клиентского сервиса
@@ -47,7 +49,7 @@ type ClientService interface {
 	// Register выполняет запрос к API сервера для регистрации пользователя и получения токена
 	Register(login string, password string) (string, error)
 
-	GetUploadLink(label string, extension string) (string, error)
+	GetUploadLink(label string, extension string, token string) (string, error)
 
 	SendFileToServer(url string, file *os.File) (string, error)
 }

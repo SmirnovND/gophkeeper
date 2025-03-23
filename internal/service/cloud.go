@@ -18,6 +18,6 @@ func NewCloud(minio *minio.Client, bucketName string) interfaces.CloudService {
 	}
 }
 
-func (awc *Cloud) GenerateUploadLink(fileName string) (string, error) {
-	return pkg.GeneratePreSignedURL(awc.minio, awc.bucketName, fileName)
+func (c *Cloud) GenerateUploadLink(fileName string) (string, error) {
+	return pkg.GeneratePreSignedURL(c.minio, c.bucketName, fileName)
 }

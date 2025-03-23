@@ -12,6 +12,10 @@ func NewTokenService(ts interfaces.TokenStorage) interfaces.TokenService {
 	}
 }
 
-func (t *TokenService) SaveToken(name string, token string) {
-	t.ts.SaveToken(name, token)
+func (t *TokenService) SaveToken(token string) {
+	t.ts.SaveToken(token)
+}
+
+func (t *TokenService) LoadToken() (string, error) {
+	return t.ts.LoadToken()
 }

@@ -6,10 +6,75 @@ definitions:
       password:
         type: string
     type: object
+  domain.FileData:
+    properties:
+      extension:
+        type: string
+      name:
+        type: string
+    required:
+    - extension
+    - name
+    type: object
 info:
   contact: {}
 paths:
-  /login:
+  /api/files/upload:
+    post:
+      consumes:
+      - application/json
+      description: Генерирует ссылку для загрузки файла на сервер
+      parameters:
+      - description: Bearer токен авторизации
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Информация о загружаемом файле
+        in: body
+        name: fileData
+        required: true
+        schema:
+          $ref: '#/definitions/domain.FileData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная генерация ссылки, возвращает URL для загрузки файла
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка в формате запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Пользователь не авторизован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "413":
+          description: Превышен максимальный размер файла
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Загрузка файла
+      tags:
+      - files
+  /api/user/login:
     post:
       consumes:
       - application/json
@@ -51,7 +116,7 @@ paths:
       summary: Авторизация пользователя
       tags:
       - auth
-  /register:
+  /api/user/register:
     post:
       consumes:
       - application/json

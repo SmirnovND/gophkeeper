@@ -17,6 +17,21 @@ func NewFileController(FileUseCase interfaces.CloudUseCase) *FileController {
 	}
 }
 
+// HandleUploadFile godoc
+// @Summary Загрузка файла
+// @Description Генерирует ссылку для загрузки файла на сервер
+// @Tags files
+// @Accept json
+// @Produce json
+// @Security ApiKeyAuth
+// @Param Authorization header string true "Bearer токен авторизации"
+// @Param fileData body domain.FileData true "Информация о загружаемом файле"
+// @Success 200 {object} map[string]string "Успешная генерация ссылки, возвращает URL для загрузки файла"
+// @Failure 400 {object} map[string]string "Ошибка в формате запроса"
+// @Failure 401 {object} map[string]string "Пользователь не авторизован"
+// @Failure 413 {object} map[string]string "Превышен максимальный размер файла"
+// @Failure 500 {object} map[string]string "Внутренняя ошибка сервера"
+// @Router /api/files/upload [post]
 func (f *FileController) HandleUploadFile(w http.ResponseWriter, r *http.Request) {
 	fileData, err := paramsparser.JSONParse[domain.FileData](w, r)
 	if err != nil {

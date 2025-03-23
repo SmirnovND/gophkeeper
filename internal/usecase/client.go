@@ -33,7 +33,7 @@ func (c *ClientUseCase) Login(username string, password string) error {
 	}
 
 	// Сохраняем полученный токен
-	c.TokenService.SaveToken(username, token)
+	c.TokenService.SaveToken(token)
 	return nil
 }
 
@@ -48,7 +48,7 @@ func (c *ClientUseCase) Register(username string, password string, passwordCheck
 	}
 
 	// Сохраняем полученный токен
-	c.TokenService.SaveToken(username, token)
+	c.TokenService.SaveToken(token)
 	return nil
 }
 
@@ -81,8 +81,12 @@ func (c *ClientUseCase) Upload(filePath string, label string) (string, error) {
 	}
 	defer file.Close()
 
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return "", errors.New(fmt.Sprintf("Ошибка при загрузке токена: %v\n", err))
+	}
 	// Получение ссылки на загрузку файла
-	url, err := c.ClientService.GetUploadLink(label, pkg.GetExtensionByPath(filePath))
+	url, err := c.ClientService.GetUploadLink(label, pkg.GetExtensionByPath(filePath), token)
 	if err != nil {
 		return "", errors.New(fmt.Sprintf("Ошибка при получении ссылки на загрузку: %v\n", err))
 	}

@@ -33,11 +33,8 @@ jobs:
           cp build/passcli-darwin-amd64 artifacts/
           cp build/passcli-darwin-arm64 artifacts/
 
-      - name: Archive builds
-        run: tar -czvf artifacts/passcli-builds.tar.gz -C artifacts .
-
       - name: Upload builds
         uses: actions/upload-artifact@v4
         with:
           name: passcli-builds
-          path: artifacts/passcli-builds.tar.gz
+          path: artifacts/

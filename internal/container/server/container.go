@@ -78,11 +78,13 @@ func (c *Container) provideUsecase() {
 
 func (c *Container) provideRepo() {
 	c.container.Provide(repo.NewUserRepo)
+	c.container.Provide(repo.NewUserDataRepo)
 }
 
 func (c *Container) provideService() {
 	c.container.Provide(service.NewAuthService)
 	c.container.Provide(service.NewUserService)
+	c.container.Provide(service.NewDataService)
 
 	c.container.Provide(func(minio *minio.Client, configServer interfaces.ConfigServer) interfaces.CloudService {
 		return service.NewCloud(minio, configServer.GetMinioBucketName())

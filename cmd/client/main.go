@@ -29,6 +29,7 @@ func main() {
 	})
 	rootCmd.AddCommand(Command.Login())
 	rootCmd.AddCommand(Command.UploadCmd())
+	rootCmd.AddCommand(Command.DownloadCmd())
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

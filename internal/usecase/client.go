@@ -101,6 +101,42 @@ func (c *ClientUseCase) Upload(filePath string, label string) (string, error) {
 	return c.ClientService.SendFileToServer(url, file)
 }
 
+// Download - функция для скачивания файла с сервера.
+func (c *ClientUseCase) Download(label string) error {
+	// Проверяем, что метка файла указана
+	if label == "" {
+		return errors.New("Не указана метка файла")
+	}
+
+	// Получаем директорию загрузок
+	downloadsDir := pkg.GetDownloadsDir()
+	// Формируем имя файла из метки
+	outputPath := filepath.Join(downloadsDir, label)
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Получаем ссылку на скачивание файла
+	downloadURL, err := c.ClientService.GetDownloadLink(label, token)
+	if err != nil {
+		return fmt.Errorf("ошибка при получении ссылки на скачивание: %w", err)
+	}
+
+	fmt.Printf("Скачивание файла с меткой '%s'\n", label)
+
+	// Скачиваем файл
+	err = c.ClientService.DownloadFileFromServer(downloadURL, outputPath)
+	if err != nil {
+		return fmt.Errorf("ошибка при скачивании файла: %w", err)
+	}
+
+	fmt.Printf("Файл успешно скачан и сохранен в '%s'\n", outputPath)
+	return nil
+}
+
 // isTextFile проверяет, является ли файл текстовым
 func isTextFile(filePath string) bool {
 	// Проверка по расширению файла (быстрый метод)

@@ -51,7 +51,11 @@ type ClientService interface {
 
 	GetUploadLink(label string, extension string, token string) (string, error)
 
+	GetDownloadLink(label string, token string) (string, error)
+
 	SendFileToServer(url string, file *os.File) (string, error)
+
+	DownloadFileFromServer(url string, outputPath string) error
 }
 
 type CloudService interface {

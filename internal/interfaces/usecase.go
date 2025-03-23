@@ -21,6 +21,7 @@ type ClientUseCase interface {
 	Login(username string, password string) error
 	Register(username string, password string, passwordCheck string) error
 	Upload(filePath string, label string) (string, error)
+	Download(label string) error
 }
 
 type CloudUseCase interface {

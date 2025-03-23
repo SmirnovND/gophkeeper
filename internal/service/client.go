@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -180,4 +181,82 @@ func (c *ClientService) SendFileToServer(url string, file *os.File) (string, err
 	} else {
 		return "", errors.New(fmt.Sprintf("Ошибка при загрузке файла: %s\n", fileUploadResp.Status))
 	}
+}
+
+func (c *ClientService) GetDownloadLink(label string, token string) (string, error) {
+	// Формируем URL для запроса на получение ссылки для скачивания
+	url := fmt.Sprintf("http://%s/api/file/download?label=%s", c.serverAddr, label)
+
+	// Создаем запрос
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return "", fmt.Errorf("ошибка при создании запроса: %w", err)
+	}
+
+	// Устанавливаем заголовок авторизации
+	req.Header.Set("Authorization", token)
+
+	// Выполняем запрос
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return "", fmt.Errorf("ошибка при выполнении запроса: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Проверяем статус ответа
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("ошибка при получении ссылки для скачивания, код ответа: %d", resp.StatusCode)
+	}
+
+	// Чтение ответа сервера
+	respBody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("ошибка при чтении ответа сервера: %w", err)
+	}
+
+	// Извлекаем URL из ответа
+	var response struct {
+		URL         string `json:"url"`
+		Description string `json:"description"`
+	}
+	if err := json.Unmarshal(respBody, &response); err != nil {
+		return "", fmt.Errorf("ошибка при парсинге ответа: %w", err)
+	}
+
+	return response.URL, nil
+}
+
+func (c *ClientService) DownloadFileFromServer(url string, outputPath string) error {
+	// Создаем запрос на скачивание файла
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return fmt.Errorf("ошибка при создании запроса на скачивание: %w", err)
+	}
+
+	// Выполняем запрос
+	resp, err := c.client.Do(req)
+	if err != nil {
+		return fmt.Errorf("ошибка при выполнении запроса на скачивание: %w", err)
+	}
+	defer resp.Body.Close()
+
+	// Проверяем статус ответа
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("ошибка при скачивании файла, код ответа: %d", resp.StatusCode)
+	}
+
+	// Создаем файл для сохранения скачанных данных
+	outputFile, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("ошибка при создании файла для сохранения: %w", err)
+	}
+	defer outputFile.Close()
+
+	// Копируем данные из ответа в файл
+	_, err = io.Copy(outputFile, resp.Body)
+	if err != nil {
+		return fmt.Errorf("ошибка при сохранении файла: %w", err)
+	}
+
+	return nil
 }

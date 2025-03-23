@@ -3,6 +3,7 @@ package controllers
 import (
 	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
+	"github.com/SmirnovND/gophkeeper/pkg"
 	"github.com/SmirnovND/toolbox/pkg/paramsparser"
 	"net/http"
 )
@@ -37,5 +38,12 @@ func (f *FileController) HandleUploadFile(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		return
 	}
-	f.FileUseCase.GenerateUploadLink(w, fileData)
+
+	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	if err != nil {
+		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	f.FileUseCase.GenerateUploadLink(w, fileData, login)
 }

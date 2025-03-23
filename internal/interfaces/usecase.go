@@ -24,5 +24,5 @@ type ClientUseCase interface {
 }
 
 type CloudUseCase interface {
-	GenerateUploadLink(w http.ResponseWriter, fileData *domain.FileData)
+	GenerateUploadLink(w http.ResponseWriter, fileData *domain.FileData, login string)
 }

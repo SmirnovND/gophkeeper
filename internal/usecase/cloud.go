@@ -20,7 +20,7 @@ func NewCloudUseCase(
 	}
 }
 
-func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, fileData *domain.FileData) {
+func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, fileData *domain.FileData, login string) {
 	// Валидация входящего объекта FileData
 	if fileData == nil || fileData.Name == "" || fileData.Extension == "" {
 		http.Error(w, "Неверные данные файла", http.StatusBadRequest)
@@ -28,7 +28,7 @@ func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, fileData *domai
 	}
 
 	// Формируем имя файла
-	fileName := fmt.Sprintf("%s.%s", fileData.Name, fileData.Extension)
+	fileName := fmt.Sprintf("%s_%s.%s", login, fileData.Name, fileData.Extension)
 
 	// Получаем ссылку для загрузки
 	uploadLink, err := c.cloudService.GenerateUploadLink(fileName)

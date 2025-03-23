@@ -25,6 +25,15 @@ type ClientUseCase interface {
 }
 
 type CloudUseCase interface {
-	GenerateUploadLink(w http.ResponseWriter, fileData *domain.FileData, login string)
-	GenerateDownloadLink(w http.ResponseWriter, label string, login string)
+	GenerateUploadLink(w http.ResponseWriter, r *http.Request, fileData *domain.FileData)
+	GenerateDownloadLink(w http.ResponseWriter, r *http.Request, label string)
+}
+
+type DataUseCase interface {
+	SaveCredential(w http.ResponseWriter, r *http.Request, label string, credentialData *domain.CredentialData)
+	GetCredential(w http.ResponseWriter, r *http.Request, label string)
+	SaveCard(w http.ResponseWriter, r *http.Request, label string, cardData *domain.CardData)
+	GetCard(w http.ResponseWriter, r *http.Request, label string)
+	SaveText(w http.ResponseWriter, r *http.Request, label string, textData *domain.TextData)
+	GetText(w http.ResponseWriter, r *http.Request, label string)
 }

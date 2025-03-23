@@ -96,6 +96,7 @@ func (c *Container) provideController() {
 	c.container.Provide(controllers.NewAuthController)
 	c.container.Provide(controllers.NewHealthcheckController)
 	c.container.Provide(controllers.NewFileController)
+	c.container.Provide(controllers.NewDataController)
 }
 
 // Invoke - функция для вызова и инжекта зависимостей

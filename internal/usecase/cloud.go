@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
+	"github.com/SmirnovND/gophkeeper/pkg"
 	"net/http"
 )
 
@@ -23,7 +24,13 @@ func NewCloudUseCase(
 	}
 }
 
-func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, fileData *domain.FileData, login string) {
+func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, r *http.Request, fileData *domain.FileData) {
+	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	if err != nil {
+		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	// Валидация входящего объекта FileData
 	if fileData == nil || fileData.Name == "" || fileData.Extension == "" {
 		http.Error(w, "Неверные данные файла", http.StatusBadRequest)
@@ -42,7 +49,7 @@ func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, fileData *domai
 	}
 
 	// Сохраняем метаданные файла в таблице user_data
-	err = c.dataService.SaveFileMetadata(login, fileData.Name, fileData, uploadLink)
+	err = c.dataService.SaveFileMetadata(login, fileData.Name, fileData)
 	if err != nil {
 		http.Error(w, "Ошибка при сохранении метаданных файла: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -59,7 +66,14 @@ func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, fileData *domai
 	json.NewEncoder(w).Encode(response)
 }
 
-func (c *CloudUseCase) GenerateDownloadLink(w http.ResponseWriter, label string, login string) {
+func (c *CloudUseCase) GenerateDownloadLink(w http.ResponseWriter, r *http.Request, label string) {
+	// Получаем логин пользователя из токена
+	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	if err != nil {
+		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	// Валидация входящих данных
 	if label == "" {
 		http.Error(w, "Не указана метка файла", http.StatusBadRequest)

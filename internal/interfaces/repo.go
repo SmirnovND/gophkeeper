@@ -29,11 +29,6 @@ type UserDataRepo interface {
 	// Возвращает nil и ошибку, если данные не найдены или произошла другая ошибка.
 	GetUserDataByLabelAndType(userID, label string, dataType string) (*domain.UserData, error)
 
-	// FindAllUserData возвращает все данные пользователя.
-	// Возвращает список данных и nil, если данные найдены.
-	// Возвращает nil и ошибку, если данные не найдены или произошла другая ошибка.
-	FindAllUserData(userID string) ([]*domain.UserData, error)
-
 	// DeleteUserData удаляет данные пользователя по ID.
 	// Возвращает ошибку, если произошла ошибка при удалении.
 	DeleteUserData(id string) error

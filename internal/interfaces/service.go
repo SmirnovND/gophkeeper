@@ -65,6 +65,19 @@ type CloudService interface {
 
 // DataService определяет интерфейс для работы с данными пользователя
 type DataService interface {
-	SaveFileMetadata(login string, label string, fileData *domain.FileData, uploadLink string) error
+	// Методы для работы с файлами
+	SaveFileMetadata(login string, label string, fileData *domain.FileData) error
 	GetFileMetadata(login string, label string) (*domain.FileMetadata, error)
+
+	// Методы для работы с учетными данными (логин/пароль)
+	SaveCredential(login string, label string, credentialData *domain.CredentialData) error
+	GetCredential(login string, label string) (*domain.CredentialData, error)
+
+	// Методы для работы с данными кредитных карт
+	SaveCard(login string, label string, cardData *domain.CardData) error
+	GetCard(login string, label string) (*domain.CardData, error)
+
+	// Методы для работы с текстовыми данными
+	SaveText(login string, label string, textData *domain.TextData) error
+	GetText(login string, label string) (*domain.TextData, error)
 }

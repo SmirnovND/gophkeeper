@@ -66,18 +66,25 @@ func (r *UserDataRepo) FindUserDataByLabel(userID, label string) (*domain.UserDa
 	return userData, nil
 }
 
-// FindAllUserData возвращает все данные пользователя
-func (r *UserDataRepo) FindAllUserData(userID string) ([]*domain.UserData, error) {
-	// Здесь должен быть код для получения всех данных пользователя
-	// Но так как мы не используем этот метод в текущей задаче, оставим его реализацию на будущее
-	return nil, fmt.Errorf("method not implemented")
-}
-
 // DeleteUserData удаляет данные пользователя по ID
 func (r *UserDataRepo) DeleteUserData(id string) error {
-	// Здесь должен быть код для удаления данных пользователя
-	// Но так как мы не используем этот метод в текущей задаче, оставим его реализацию на будущее
-	return fmt.Errorf("method not implemented")
+	query := `DELETE FROM "user_data" WHERE id = $1`
+
+	result, err := r.db.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("error deleting user data: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return domain.ErrNotFound
+	}
+
+	return nil
 }
 
 // GetUserDataByLabelAndType ищет данные пользователя по метке и типу

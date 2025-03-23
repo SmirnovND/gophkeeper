@@ -1,4 +1,4 @@
-name: Build Client
+name: Build Client and Server
 
 on:
   push:
@@ -23,6 +23,9 @@ jobs:
       - name: Build client for all platforms
         run: make build-client-all
 
+      - name: Build server for Linux
+        run: make build-server-linux
+
       - name: Prepare artifacts directory
         run: mkdir -p artifacts
 
@@ -32,9 +35,10 @@ jobs:
           cp build/passcli-linux-amd64 artifacts/
           cp build/passcli-darwin-amd64 artifacts/
           cp build/passcli-darwin-arm64 artifacts/
+          cp build/passserver-linux-amd64 artifacts/
 
       - name: Upload builds
         uses: actions/upload-artifact@v4
         with:
-          name: passcli-builds
+          name: gophkeeper-builds
           path: artifacts/

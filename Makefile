@@ -30,6 +30,7 @@ help:
 	@$(TAB) build-client-windows - сборка клиента для Windows
 	@$(TAB) build-client-linux - сборка клиента для Linux
 	@$(TAB) build-client-macos - сборка клиента для macOS
+	@$(TAB) build-server-linux - сборка сервера для Linux
 	@$(TAB) help - вывод справки по командам
 
 up-server:
@@ -111,4 +112,8 @@ build-client-macos: build-dir
 
 # Сборка клиента для всех платформ
 build-client-all: build-client-windows build-client-linux build-client-macos
+
+# Сборка сервера для Linux
+build-server-linux: build-dir
+	GOOS=linux GOARCH=amd64 go build $(LDFLAGS) -o $(BUILD_DIR)/passserver-linux-amd64 ./cmd/server
 

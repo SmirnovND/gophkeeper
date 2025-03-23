@@ -58,3 +58,38 @@ func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, fileData *domai
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(response)
 }
+
+func (c *CloudUseCase) GenerateDownloadLink(w http.ResponseWriter, label string, login string) {
+	// Валидация входящих данных
+	if label == "" {
+		http.Error(w, "Не указана метка файла", http.StatusBadRequest)
+		return
+	}
+
+	// Получаем метаданные файла из базы данных
+	fileMetadata, err := c.dataService.GetFileMetadata(login, label)
+	if err != nil {
+		http.Error(w, "Ошибка при получении метаданных файла: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Формируем имя файла
+	fileName := fmt.Sprintf("%s_%s.%s", login, fileMetadata.FileName, fileMetadata.Extension)
+
+	// Получаем ссылку для скачивания
+	downloadLink, err := c.cloudService.GenerateDownloadLink(fileName)
+	if err != nil {
+		http.Error(w, "Ошибка при генерации ссылки для скачивания: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	response := domain.FileDataResponse{
+		Url:         downloadLink,
+		Description: "Скачай файл по этой ссылке",
+	}
+
+	// Отправляем ответ
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(response)
+}

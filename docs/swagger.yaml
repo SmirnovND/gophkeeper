@@ -19,6 +19,60 @@ definitions:
 info:
   contact: {}
 paths:
+  /api/files/download:
+    get:
+      consumes:
+      - application/json
+      description: Генерирует ссылку для скачивания файла с сервера
+      parameters:
+      - description: Bearer токен авторизации
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка файла
+        in: query
+        name: label
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Успешная генерация ссылки, возвращает URL для скачивания файла
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка в формате запроса
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Пользователь не авторизован
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Файл не найден
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Внутренняя ошибка сервера
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - ApiKeyAuth: []
+      summary: Скачивание файла
+      tags:
+      - files
   /api/files/upload:
     post:
       consumes:

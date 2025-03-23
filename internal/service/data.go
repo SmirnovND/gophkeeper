@@ -25,8 +25,7 @@ func (c *DataService) SaveFileMetadata(login string, label string, fileData *dom
 	// Получаем пользователя по логину
 	user, err := c.userRepo.FindUser(login)
 	if err != nil {
-		return fmt.Errorf("Ошибка при поиске пользователя: ", err)
-
+		return fmt.Errorf("Ошибка при поиске пользователя: %w", err)
 	}
 
 	// Создаем метаданные файла
@@ -57,4 +56,32 @@ func (c *DataService) SaveFileMetadata(login string, label string, fileData *dom
 	}
 
 	return nil
+}
+
+func (c *DataService) GetFileMetadata(login string, label string) (*domain.FileMetadata, error) {
+	// Получаем пользователя по логину
+	user, err := c.userRepo.FindUser(login)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при поиске пользователя: %w", err)
+	}
+
+	// Получаем данные пользователя по метке и типу
+	userData, err := c.repo.GetUserDataByLabelAndType(user.Id, label, domain.UserDataTypeFile)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при получении метаданных файла: %w", err)
+	}
+
+	// Если данные не найдены
+	if userData == nil {
+		return nil, fmt.Errorf("метаданные файла не найдены")
+	}
+
+	// Десериализуем метаданные из JSON
+	var fileMetadata domain.FileMetadata
+	err = json.Unmarshal(userData.Data, &fileMetadata)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при десериализации метаданных файла: %w", err)
+	}
+
+	return &fileMetadata, nil
 }

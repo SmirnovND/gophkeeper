@@ -56,9 +56,11 @@ type ClientService interface {
 
 type CloudService interface {
 	GenerateUploadLink(fileName string) (string, error)
+	GenerateDownloadLink(fileName string) (string, error)
 }
 
 // DataService определяет интерфейс для работы с данными пользователя
 type DataService interface {
 	SaveFileMetadata(login string, label string, fileData *domain.FileData, uploadLink string) error
+	GetFileMetadata(login string, label string) (*domain.FileMetadata, error)
 }

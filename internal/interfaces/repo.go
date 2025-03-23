@@ -24,6 +24,11 @@ type UserDataRepo interface {
 	// Возвращает nil и ошибку, если данные не найдены или произошла другая ошибка.
 	FindUserDataByLabel(userID, label string) (*domain.UserData, error)
 
+	// GetUserDataByLabelAndType ищет данные пользователя по метке и типу.
+	// Возвращает данные и nil, если данные найдены.
+	// Возвращает nil и ошибку, если данные не найдены или произошла другая ошибка.
+	GetUserDataByLabelAndType(userID, label string, dataType string) (*domain.UserData, error)
+
 	// FindAllUserData возвращает все данные пользователя.
 	// Возвращает список данных и nil, если данные найдены.
 	// Возвращает nil и ошибку, если данные не найдены или произошла другая ошибка.

@@ -79,3 +79,31 @@ func (r *UserDataRepo) DeleteUserData(id string) error {
 	// Но так как мы не используем этот метод в текущей задаче, оставим его реализацию на будущее
 	return fmt.Errorf("method not implemented")
 }
+
+// GetUserDataByLabelAndType ищет данные пользователя по метке и типу
+func (r *UserDataRepo) GetUserDataByLabelAndType(userID, label string, dataType string) (*domain.UserData, error) {
+	query := `SELECT id, user_id, label, type, data, created_at, updated_at
+              FROM "user_data"
+              WHERE user_id = $1 AND label = $2 AND type = $3
+              LIMIT 1`
+	row := r.db.QueryRow(query, userID, label, dataType)
+
+	userData := &domain.UserData{}
+	err := row.Scan(
+		&userData.ID,
+		&userData.UserID,
+		&userData.Label,
+		&userData.Type,
+		&userData.Data,
+		&userData.CreatedAt,
+		&userData.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, domain.ErrNotFound
+		}
+		return nil, fmt.Errorf("error querying user data by label and type: %w", err)
+	}
+
+	return userData, nil
+}

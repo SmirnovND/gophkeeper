@@ -21,3 +21,7 @@ func NewCloud(minio *minio.Client, bucketName string) interfaces.CloudService {
 func (c *Cloud) GenerateUploadLink(fileName string) (string, error) {
 	return pkg.GeneratePreSignedURL(c.minio, c.bucketName, fileName)
 }
+
+func (c *Cloud) GenerateDownloadLink(fileName string) (string, error) {
+	return pkg.GenerateDownloadURL(c.minio, c.bucketName, fileName)
+}

@@ -46,6 +46,10 @@ func Handler(diContainer *server.Container) http.Handler {
 	r.Post("/api/file/upload", func(w http.ResponseWriter, r *http.Request) {
 		auth.AuthMiddleware(cf.GetJwtSecret(), http.HandlerFunc(FileController.HandleUploadFile)).ServeHTTP(w, r)
 	})
+	
+	r.Get("/api/file/download", func(w http.ResponseWriter, r *http.Request) {
+		auth.AuthMiddleware(cf.GetJwtSecret(), http.HandlerFunc(FileController.HandleDownloadFile)).ServeHTTP(w, r)
+	})
 
 	r.Get("/ping", HealthcheckController.HandlePing)
 

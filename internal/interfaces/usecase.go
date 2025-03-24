@@ -22,6 +22,21 @@ type ClientUseCase interface {
 	Register(username string, password string, passwordCheck string) error
 	Upload(filePath string, label string) (string, error)
 	Download(label string) error
+	
+	// Методы для работы с текстовыми данными
+	SaveText(label string, textData *domain.TextData) error
+	GetText(label string) (*domain.TextData, error)
+	DeleteText(label string) error
+	
+	// Методы для работы с данными кредитных карт
+	SaveCard(label string, cardData *domain.CardData) error
+	GetCard(label string) (*domain.CardData, error)
+	DeleteCard(label string) error
+	
+	// Методы для работы с учетными данными
+	SaveCredential(label string, credentialData *domain.CredentialData) error
+	GetCredential(label string) (*domain.CredentialData, error)
+	DeleteCredential(label string) error
 }
 
 type CloudUseCase interface {

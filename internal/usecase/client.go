@@ -3,6 +3,7 @@ package usecase
 import (
 	"errors"
 	"fmt"
+	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"github.com/SmirnovND/gophkeeper/pkg"
 	"os"
@@ -135,6 +136,204 @@ func (c *ClientUseCase) Download(label string) error {
 	}
 
 	fmt.Printf("Файл успешно скачан и сохранен в '%s'\n", outputPath)
+	return nil
+}
+
+// SaveText сохраняет текстовые данные
+func (c *ClientUseCase) SaveText(label string, textData *domain.TextData) error {
+	// Проверяем, что метка указана
+	if label == "" {
+		return errors.New("не указана метка для текстовых данных")
+	}
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Сохраняем текстовые данные
+	err = c.ClientService.SaveText(label, textData, token)
+	if err != nil {
+		return fmt.Errorf("ошибка при сохранении текстовых данных: %w", err)
+	}
+
+	return nil
+}
+
+// GetText получает текстовые данные
+func (c *ClientUseCase) GetText(label string) (*domain.TextData, error) {
+	// Проверяем, что метка указана
+	if label == "" {
+		return nil, errors.New("не указана метка для текстовых данных")
+	}
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Получаем текстовые данные
+	textData, err := c.ClientService.GetText(label, token)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при получении текстовых данных: %w", err)
+	}
+
+	return textData, nil
+}
+
+// DeleteText удаляет текстовые данные
+func (c *ClientUseCase) DeleteText(label string) error {
+	// Проверяем, что метка указана
+	if label == "" {
+		return errors.New("не указана метка для текстовых данных")
+	}
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Удаляем текстовые данные
+	err = c.ClientService.DeleteText(label, token)
+	if err != nil {
+		return fmt.Errorf("ошибка при удалении текстовых данных: %w", err)
+	}
+
+	return nil
+}
+
+// SaveCard сохраняет данные кредитной карты
+func (c *ClientUseCase) SaveCard(label string, cardData *domain.CardData) error {
+	// Проверяем, что метка указана
+	if label == "" {
+		return errors.New("не указана метка для данных карты")
+	}
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Сохраняем данные карты
+	err = c.ClientService.SaveCard(label, cardData, token)
+	if err != nil {
+		return fmt.Errorf("ошибка при сохранении данных карты: %w", err)
+	}
+
+	return nil
+}
+
+// GetCard получает данные кредитной карты
+func (c *ClientUseCase) GetCard(label string) (*domain.CardData, error) {
+	// Проверяем, что метка указана
+	if label == "" {
+		return nil, errors.New("не указана метка для данных карты")
+	}
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Получаем данные карты
+	cardData, err := c.ClientService.GetCard(label, token)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при получении данных карты: %w", err)
+	}
+
+	return cardData, nil
+}
+
+// DeleteCard удаляет данные кредитной карты
+func (c *ClientUseCase) DeleteCard(label string) error {
+	// Проверяем, что метка указана
+	if label == "" {
+		return errors.New("не указана метка для данных карты")
+	}
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Удаляем данные карты
+	err = c.ClientService.DeleteCard(label, token)
+	if err != nil {
+		return fmt.Errorf("ошибка при удалении данных карты: %w", err)
+	}
+
+	return nil
+}
+
+// SaveCredential сохраняет учетные данные
+func (c *ClientUseCase) SaveCredential(label string, credentialData *domain.CredentialData) error {
+	// Проверяем, что метка указана
+	if label == "" {
+		return errors.New("не указана метка для учетных данных")
+	}
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Сохраняем учетные данные
+	err = c.ClientService.SaveCredential(label, credentialData, token)
+	if err != nil {
+		return fmt.Errorf("ошибка при сохранении учетных данных: %w", err)
+	}
+
+	return nil
+}
+
+// GetCredential получает учетные данные
+func (c *ClientUseCase) GetCredential(label string) (*domain.CredentialData, error) {
+	// Проверяем, что метка указана
+	if label == "" {
+		return nil, errors.New("не указана метка для учетных данных")
+	}
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Получаем учетные данные
+	credentialData, err := c.ClientService.GetCredential(label, token)
+	if err != nil {
+		return nil, fmt.Errorf("ошибка при получении учетных данных: %w", err)
+	}
+
+	return credentialData, nil
+}
+
+// DeleteCredential удаляет учетные данные
+func (c *ClientUseCase) DeleteCredential(label string) error {
+	// Проверяем, что метка указана
+	if label == "" {
+		return errors.New("не указана метка для учетных данных")
+	}
+
+	// Загружаем токен
+	token, err := c.TokenService.LoadToken()
+	if err != nil {
+		return fmt.Errorf("ошибка при загрузке токена: %w", err)
+	}
+
+	// Удаляем учетные данные
+	err = c.ClientService.DeleteCredential(label, token)
+	if err != nil {
+		return fmt.Errorf("ошибка при удалении учетных данных: %w", err)
+	}
+
 	return nil
 }
 

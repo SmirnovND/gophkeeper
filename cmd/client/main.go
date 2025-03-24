@@ -30,6 +30,21 @@ func main() {
 	rootCmd.AddCommand(Command.Login())
 	rootCmd.AddCommand(Command.UploadCmd())
 	rootCmd.AddCommand(Command.DownloadCmd())
+	
+	// Добавляем команды для работы с текстовыми данными
+	rootCmd.AddCommand(Command.SaveTextCmd())
+	rootCmd.AddCommand(Command.GetTextCmd())
+	rootCmd.AddCommand(Command.DeleteTextCmd())
+	
+	// Добавляем команды для работы с данными кредитных карт
+	rootCmd.AddCommand(Command.SaveCardCmd())
+	rootCmd.AddCommand(Command.GetCardCmd())
+	rootCmd.AddCommand(Command.DeleteCardCmd())
+	
+	// Добавляем команды для работы с учетными данными
+	rootCmd.AddCommand(Command.SaveCredentialCmd())
+	rootCmd.AddCommand(Command.GetCredentialCmd())
+	rootCmd.AddCommand(Command.DeleteCredentialCmd())
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

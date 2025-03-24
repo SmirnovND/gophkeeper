@@ -56,6 +56,21 @@ type ClientService interface {
 	SendFileToServer(url string, file *os.File) (string, error)
 
 	DownloadFileFromServer(url string, outputPath string) error
+
+	// Методы для работы с текстовыми данными
+	SaveText(label string, textData *domain.TextData, token string) error
+	GetText(label string, token string) (*domain.TextData, error)
+	DeleteText(label string, token string) error
+
+	// Методы для работы с данными кредитных карт
+	SaveCard(label string, cardData *domain.CardData, token string) error
+	GetCard(label string, token string) (*domain.CardData, error)
+	DeleteCard(label string, token string) error
+
+	// Методы для работы с учетными данными
+	SaveCredential(label string, credentialData *domain.CredentialData, token string) error
+	GetCredential(label string, token string) (*domain.CredentialData, error)
+	DeleteCredential(label string, token string) error
 }
 
 type CloudService interface {

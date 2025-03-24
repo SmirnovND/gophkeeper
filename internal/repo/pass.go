@@ -20,19 +20,37 @@ func NewUserDataRepo(db interfaces.DB) interfaces.UserDataRepo {
 }
 
 // SaveUserData сохраняет данные пользователя в базе данных
+// Если запись с таким user_id и label уже существует, она будет обновлена
 func (r *UserDataRepo) SaveUserData(userData *domain.UserData) error {
-	exec := r.db.QueryRow
+	// Сначала проверяем, существует ли запись с таким user_id и label
+	existingData, err := r.FindUserDataByLabel(userData.UserID, userData.Label)
+	if err != nil && err != domain.ErrNotFound {
+		return fmt.Errorf("error checking existing user data: %w", err)
+	}
 
-	// Запрос с RETURNING id, чтобы получить вставленный id
-	query := `INSERT INTO "user_data" (user_id, label, type, data)
-              VALUES ($1, $2, $3, $4)
-              RETURNING id, created_at, updated_at`
+	// Если запись существует, обновляем ее
+	if existingData != nil {
+		query := `UPDATE "user_data"
+				  SET type = $1, data = $2
+				  WHERE user_id = $3 AND label = $4
+				  RETURNING id, created_at, updated_at`
 
-	// Выполняем запрос и получаем id, created_at, updated_at
-	err := exec(query, userData.UserID, userData.Label, userData.Type, userData.Data).
-		Scan(&userData.ID, &userData.CreatedAt, &userData.UpdatedAt)
-	if err != nil {
-		return fmt.Errorf("error saving user data: %w", err)
+		err := r.db.QueryRow(query, userData.Type, userData.Data, userData.UserID, userData.Label).
+			Scan(&userData.ID, &userData.CreatedAt, &userData.UpdatedAt)
+		if err != nil {
+			return fmt.Errorf("error updating user data: %w", err)
+		}
+	} else {
+		// Если записи не существует, создаем новую
+		query := `INSERT INTO "user_data" (user_id, label, type, data)
+				  VALUES ($1, $2, $3, $4)
+				  RETURNING id, created_at, updated_at`
+
+		err := r.db.QueryRow(query, userData.UserID, userData.Label, userData.Type, userData.Data).
+			Scan(&userData.ID, &userData.CreatedAt, &userData.UpdatedAt)
+		if err != nil {
+			return fmt.Errorf("error saving user data: %w", err)
+		}
 	}
 
 	return nil

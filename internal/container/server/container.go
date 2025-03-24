@@ -74,6 +74,7 @@ func (d *DBAdapter) QueryRow(query string, args ...interface{}) *sqlx.Row {
 func (c *Container) provideUsecase() {
 	c.container.Provide(usecase.NewAuthUseCase)
 	c.container.Provide(usecase.NewCloudUseCase)
+	c.container.Provide(usecase.NewDataUseCase)
 }
 
 func (c *Container) provideRepo() {

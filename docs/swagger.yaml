@@ -1,4 +1,22 @@
 definitions:
+  domain.CardData:
+    properties:
+      cvv:
+        type: string
+      expiry_date:
+        type: string
+      holder:
+        type: string
+      number:
+        type: string
+    type: object
+  domain.CredentialData:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
   domain.Credentials:
     properties:
       login:
@@ -16,9 +34,317 @@ definitions:
     - extension
     - name
     type: object
+  domain.TextData:
+    properties:
+      content:
+        type: string
+    type: object
 info:
   contact: {}
 paths:
+  /api/data/card/{label}:
+    get:
+      consumes:
+      - application/json
+      description: Получает данные кредитной карты пользователя по метке
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка для идентификации данных
+        in: path
+        name: label
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CardData'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить данные кредитной карты
+      tags:
+      - data
+    post:
+      consumes:
+      - application/json
+      description: Сохраняет данные кредитной карты пользователя
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка для идентификации данных
+        in: path
+        name: label
+        required: true
+        type: string
+      - description: Данные кредитной карты
+        in: body
+        name: card
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CardData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Сохранить данные кредитной карты
+      tags:
+      - data
+  /api/data/credential/{label}:
+    get:
+      consumes:
+      - application/json
+      description: Получает пару логин/пароль пользователя по метке
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка для идентификации данных
+        in: path
+        name: label
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.CredentialData'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить учетные данные
+      tags:
+      - data
+    post:
+      consumes:
+      - application/json
+      description: Сохраняет пару логин/пароль пользователя
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка для идентификации данных
+        in: path
+        name: label
+        required: true
+        type: string
+      - description: Учетные данные
+        in: body
+        name: credential
+        required: true
+        schema:
+          $ref: '#/definitions/domain.CredentialData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Сохранить учетные данные
+      tags:
+      - data
+  /api/data/text/{label}:
+    get:
+      consumes:
+      - application/json
+      description: Получает произвольный текст пользователя по метке
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка для идентификации данных
+        in: path
+        name: label
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/domain.TextData'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Получить текстовые данные
+      tags:
+      - data
+    post:
+      consumes:
+      - application/json
+      description: Сохраняет произвольный текст пользователя
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка для идентификации данных
+        in: path
+        name: label
+        required: true
+        type: string
+      - description: Текстовые данные
+        in: body
+        name: text
+        required: true
+        schema:
+          $ref: '#/definitions/domain.TextData'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Сохранить текстовые данные
+      tags:
+      - data
   /api/files/download:
     get:
       consumes:

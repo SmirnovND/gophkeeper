@@ -266,3 +266,115 @@ func (c *DataService) GetText(login string, label string) (*domain.TextData, err
 
 	return &textData, nil
 }
+
+// DeleteFileMetadata удаляет метаданные файла
+func (c *DataService) DeleteFileMetadata(login string, label string) error {
+	// Получаем пользователя по логину
+	user, err := c.userRepo.FindUser(login)
+	if err != nil {
+		return fmt.Errorf("ошибка при поиске пользователя: %w", err)
+	}
+
+	// Удаляем данные пользователя по метке и типу
+	userData, err := c.repo.GetUserDataByLabelAndType(user.Id, label, domain.UserDataTypeFile)
+	if err != nil {
+		return fmt.Errorf("ошибка при получении метаданных файла: %w", err)
+	}
+
+	// Если данные не найдены
+	if userData == nil {
+		return fmt.Errorf("метаданные файла не найдены")
+	}
+
+	// Удаляем запись
+	err = c.repo.DeleteUserData(userData.ID)
+	if err != nil {
+		return fmt.Errorf("ошибка при удалении метаданных файла: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteCredential удаляет учетные данные (логин/пароль)
+func (c *DataService) DeleteCredential(login string, label string) error {
+	// Получаем пользователя по логину
+	user, err := c.userRepo.FindUser(login)
+	if err != nil {
+		return fmt.Errorf("ошибка при поиске пользователя: %w", err)
+	}
+
+	// Удаляем данные пользователя по метке и типу
+	userData, err := c.repo.GetUserDataByLabelAndType(user.Id, label, domain.UserDataTypeCredential)
+	if err != nil {
+		return fmt.Errorf("ошибка при получении учетных данных: %w", err)
+	}
+
+	// Если данные не найдены
+	if userData == nil {
+		return fmt.Errorf("учетные данные не найдены")
+	}
+
+	// Удаляем запись
+	err = c.repo.DeleteUserData(userData.ID)
+	if err != nil {
+		return fmt.Errorf("ошибка при удалении учетных данных: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteCard удаляет данные кредитной карты
+func (c *DataService) DeleteCard(login string, label string) error {
+	// Получаем пользователя по логину
+	user, err := c.userRepo.FindUser(login)
+	if err != nil {
+		return fmt.Errorf("ошибка при поиске пользователя: %w", err)
+	}
+
+	// Удаляем данные пользователя по метке и типу
+	userData, err := c.repo.GetUserDataByLabelAndType(user.Id, label, domain.UserDataTypeCard)
+	if err != nil {
+		return fmt.Errorf("ошибка при получении данных карты: %w", err)
+	}
+
+	// Если данные не найдены
+	if userData == nil {
+		return fmt.Errorf("данные карты не найдены")
+	}
+
+	// Удаляем запись
+	err = c.repo.DeleteUserData(userData.ID)
+	if err != nil {
+		return fmt.Errorf("ошибка при удалении данных карты: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteText удаляет текстовые данные
+func (c *DataService) DeleteText(login string, label string) error {
+	// Получаем пользователя по логину
+	user, err := c.userRepo.FindUser(login)
+	if err != nil {
+		return fmt.Errorf("ошибка при поиске пользователя: %w", err)
+	}
+
+	// Удаляем данные пользователя по метке и типу
+	userData, err := c.repo.GetUserDataByLabelAndType(user.Id, label, domain.UserDataTypeText)
+	if err != nil {
+		return fmt.Errorf("ошибка при получении текстовых данных: %w", err)
+	}
+
+	// Если данные не найдены
+	if userData == nil {
+		return fmt.Errorf("текстовые данные не найдены")
+	}
+
+	// Удаляем запись
+	err = c.repo.DeleteUserData(userData.ID)
+	if err != nil {
+		return fmt.Errorf("ошибка при удалении текстовых данных: %w", err)
+	}
+
+	return nil
+}

@@ -187,3 +187,78 @@ func (c *DataController) GetText(w http.ResponseWriter, r *http.Request) {
 
 	c.dataUseCase.GetText(w, r, label)
 }
+
+// DeleteCredential удаляет учетные данные (логин/пароль)
+// @Summary Удалить учетные данные
+// @Description Удаляет пару логин/пароль пользователя по метке
+// @Tags data
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer токен"
+// @Param label path string true "Метка для идентификации данных"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/data/credential/{label} [delete]
+func (c *DataController) DeleteCredential(w http.ResponseWriter, r *http.Request) {
+	// Получаем метку из URL
+	label := chi.URLParam(r, "label")
+	if label == "" {
+		http.Error(w, "метка не предоставлена", http.StatusBadRequest)
+		return
+	}
+
+	c.dataUseCase.DeleteCredential(w, r, label)
+}
+
+// DeleteCard удаляет данные кредитной карты
+// @Summary Удалить данные кредитной карты
+// @Description Удаляет данные кредитной карты пользователя по метке
+// @Tags data
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer токен"
+// @Param label path string true "Метка для идентификации данных"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/data/card/{label} [delete]
+func (c *DataController) DeleteCard(w http.ResponseWriter, r *http.Request) {
+	// Получаем метку из URL
+	label := chi.URLParam(r, "label")
+	if label == "" {
+		http.Error(w, "метка не предоставлена", http.StatusBadRequest)
+		return
+	}
+
+	c.dataUseCase.DeleteCard(w, r, label)
+}
+
+// DeleteText удаляет текстовые данные
+// @Summary Удалить текстовые данные
+// @Description Удаляет произвольный текст пользователя по метке
+// @Tags data
+// @Accept json
+// @Produce json
+// @Param Authorization header string true "Bearer токен"
+// @Param label path string true "Метка для идентификации данных"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /api/data/text/{label} [delete]
+func (c *DataController) DeleteText(w http.ResponseWriter, r *http.Request) {
+	// Получаем метку из URL
+	label := chi.URLParam(r, "label")
+	if label == "" {
+		http.Error(w, "метка не предоставлена", http.StatusBadRequest)
+		return
+	}
+
+	c.dataUseCase.DeleteText(w, r, label)
+}

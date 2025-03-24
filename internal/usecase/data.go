@@ -149,3 +149,75 @@ func (c *DataUseCase) GetText(w http.ResponseWriter, r *http.Request, label stri
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(textData)
 }
+
+func (c *DataUseCase) DeleteCredential(w http.ResponseWriter, r *http.Request, label string) {
+	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	if err != nil {
+		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Удаляем данные
+	err = c.dataService.DeleteCredential(login, label)
+	if err != nil {
+		if err.Error() == "учетные данные не найдены" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Отправляем успешный ответ
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "учетные данные успешно удалены"})
+}
+
+func (c *DataUseCase) DeleteCard(w http.ResponseWriter, r *http.Request, label string) {
+	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	if err != nil {
+		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Удаляем данные
+	err = c.dataService.DeleteCard(login, label)
+	if err != nil {
+		if err.Error() == "данные карты не найдены" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Отправляем успешный ответ
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "данные карты успешно удалены"})
+}
+
+func (c *DataUseCase) DeleteText(w http.ResponseWriter, r *http.Request, label string) {
+	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	if err != nil {
+		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Удаляем данные
+	err = c.dataService.DeleteText(login, label)
+	if err != nil {
+		if err.Error() == "текстовые данные не найдены" {
+			http.Error(w, err.Error(), http.StatusNotFound)
+			return
+		}
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Отправляем успешный ответ
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(map[string]string{"message": "текстовые данные успешно удалены"})
+}

@@ -32,8 +32,13 @@ type CloudUseCase interface {
 type DataUseCase interface {
 	SaveCredential(w http.ResponseWriter, r *http.Request, label string, credentialData *domain.CredentialData)
 	GetCredential(w http.ResponseWriter, r *http.Request, label string)
+	DeleteCredential(w http.ResponseWriter, r *http.Request, label string)
+
 	SaveCard(w http.ResponseWriter, r *http.Request, label string, cardData *domain.CardData)
 	GetCard(w http.ResponseWriter, r *http.Request, label string)
+	DeleteCard(w http.ResponseWriter, r *http.Request, label string)
+
 	SaveText(w http.ResponseWriter, r *http.Request, label string, textData *domain.TextData)
 	GetText(w http.ResponseWriter, r *http.Request, label string)
+	DeleteText(w http.ResponseWriter, r *http.Request, label string)
 }

@@ -132,3 +132,24 @@ func (r *UserDataRepo) GetUserDataByLabelAndType(userID, label string, dataType 
 
 	return userData, nil
 }
+
+// DeleteUserDataByUserIDAndLabel удаляет данные пользователя по ID пользователя и метке
+func (r *UserDataRepo) DeleteUserDataByUserIDAndLabel(userID, label string) error {
+	query := `DELETE FROM "user_data" WHERE user_id = $1 AND label = $2`
+
+	result, err := r.db.Exec(query, userID, label)
+	if err != nil {
+		return fmt.Errorf("error deleting user data by user_id and label: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("error getting rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return domain.ErrNotFound
+	}
+
+	return nil
+}

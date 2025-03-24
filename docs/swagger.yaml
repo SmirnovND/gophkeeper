@@ -43,6 +43,57 @@ info:
   contact: {}
 paths:
   /api/data/card/{label}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет данные кредитной карты пользователя по метке
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка для идентификации данных
+        in: path
+        name: label
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удалить данные кредитной карты
+      tags:
+      - data
     get:
       consumes:
       - application/json
@@ -144,6 +195,57 @@ paths:
       tags:
       - data
   /api/data/credential/{label}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет пару логин/пароль пользователя по метке
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка для идентификации данных
+        in: path
+        name: label
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удалить учетные данные
+      tags:
+      - data
     get:
       consumes:
       - application/json
@@ -245,6 +347,57 @@ paths:
       tags:
       - data
   /api/data/text/{label}:
+    delete:
+      consumes:
+      - application/json
+      description: Удаляет произвольный текст пользователя по метке
+      parameters:
+      - description: Bearer токен
+        in: header
+        name: Authorization
+        required: true
+        type: string
+      - description: Метка для идентификации данных
+        in: path
+        name: label
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Удалить текстовые данные
+      tags:
+      - data
     get:
       consumes:
       - application/json

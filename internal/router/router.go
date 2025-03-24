@@ -67,18 +67,21 @@ func Handler(diContainer *server.Container) http.Handler {
 		r.Route("/credential/{label}", func(r chi.Router) {
 			r.Post("/", DataController.SaveCredential)
 			r.Get("/", DataController.GetCredential)
+			r.Delete("/", DataController.DeleteCredential)
 		})
 
 		// Маршруты для работы с данными кредитных карт
 		r.Route("/card/{label}", func(r chi.Router) {
 			r.Post("/", DataController.SaveCard)
 			r.Get("/", DataController.GetCard)
+			r.Delete("/", DataController.DeleteCard)
 		})
 
 		// Маршруты для работы с текстовыми данными
 		r.Route("/text/{label}", func(r chi.Router) {
 			r.Post("/", DataController.SaveText)
 			r.Get("/", DataController.GetText)
+			r.Delete("/", DataController.DeleteText)
 		})
 	})
 

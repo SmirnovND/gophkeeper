@@ -20,7 +20,7 @@ func NewDataUseCase(
 	}
 }
 func (c *DataUseCase) GetCredential(w http.ResponseWriter, r *http.Request, label string) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := pkg.TokenExtractor(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -43,7 +43,7 @@ func (c *DataUseCase) GetCredential(w http.ResponseWriter, r *http.Request, labe
 }
 
 func (c *DataUseCase) SaveCredential(w http.ResponseWriter, r *http.Request, label string, credentialData *domain.CredentialData) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := pkg.TokenExtractor(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -63,7 +63,7 @@ func (c *DataUseCase) SaveCredential(w http.ResponseWriter, r *http.Request, lab
 }
 
 func (c *DataUseCase) SaveCard(w http.ResponseWriter, r *http.Request, label string, cardData *domain.CardData) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := pkg.TokenExtractor(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -83,7 +83,7 @@ func (c *DataUseCase) SaveCard(w http.ResponseWriter, r *http.Request, label str
 }
 
 func (c *DataUseCase) GetCard(w http.ResponseWriter, r *http.Request, label string) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := pkg.TokenExtractor(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -107,7 +107,7 @@ func (c *DataUseCase) GetCard(w http.ResponseWriter, r *http.Request, label stri
 }
 
 func (c *DataUseCase) SaveText(w http.ResponseWriter, r *http.Request, label string, textData *domain.TextData) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := pkg.TokenExtractor(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -127,7 +127,7 @@ func (c *DataUseCase) SaveText(w http.ResponseWriter, r *http.Request, label str
 }
 
 func (c *DataUseCase) GetText(w http.ResponseWriter, r *http.Request, label string) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := pkg.TokenExtractor(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -151,7 +151,7 @@ func (c *DataUseCase) GetText(w http.ResponseWriter, r *http.Request, label stri
 }
 
 func (c *DataUseCase) DeleteCredential(w http.ResponseWriter, r *http.Request, label string) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := pkg.TokenExtractor(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -175,7 +175,7 @@ func (c *DataUseCase) DeleteCredential(w http.ResponseWriter, r *http.Request, l
 }
 
 func (c *DataUseCase) DeleteCard(w http.ResponseWriter, r *http.Request, label string) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := pkg.TokenExtractor(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -199,7 +199,7 @@ func (c *DataUseCase) DeleteCard(w http.ResponseWriter, r *http.Request, label s
 }
 
 func (c *DataUseCase) DeleteText(w http.ResponseWriter, r *http.Request, label string) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := pkg.TokenExtractor(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return

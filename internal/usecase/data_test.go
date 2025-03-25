@@ -4,31 +4,17 @@ import (
 	"encoding/json"
 	"errors"
 	"github.com/SmirnovND/gophkeeper/internal/domain"
-	"github.com/SmirnovND/gophkeeper/pkg"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 )
 
-// Мок для функции TokenExtractor
-func init() {
-	// Переопределяем функцию TokenExtractor для тестов
-	pkg.TokenExtractor = func(tokenString string) (string, error) {
-		if tokenString == "Bearer valid-token" {
-			return "testuser", nil
-		}
-		if tokenString == "Bearer error-token" {
-			return "", errors.New("ошибка извлечения логина из токена")
-		}
-		return "", errors.New("неверный токен")
-	}
-}
-
 // TestNewDataUseCase проверяет создание нового экземпляра DataUseCase
 func TestNewDataUseCase(t *testing.T) {
 	mockDataService := &MockDataService{}
-	dataUseCase := NewDataUseCase(mockDataService)
+	mockJwtService := &MockJwtService{}
+	dataUseCase := NewDataUseCase(mockDataService, mockJwtService)
 
 	if dataUseCase == nil {
 		t.Fatal("NewDataUseCase вернул nil")
@@ -53,9 +39,20 @@ func TestDataUseCase_GetCredential_Success(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			if tokenString == "Bearer valid-token" {
+				return "testuser", nil
+			}
+			return "", errors.New("неверный токен")
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -97,9 +94,17 @@ func TestDataUseCase_GetCredential_TokenError(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "", errors.New("ошибка извлечения логина из токена")
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -130,9 +135,17 @@ func TestDataUseCase_GetCredential_NotFound(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -163,9 +176,17 @@ func TestDataUseCase_GetCredential_OtherError(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -208,9 +229,17 @@ func TestDataUseCase_SaveCredential_Success(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -255,9 +284,17 @@ func TestDataUseCase_SaveCredential_TokenError(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "", errors.New("ошибка извлечения логина из токена")
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -294,9 +331,17 @@ func TestDataUseCase_SaveCredential_Error(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -344,9 +389,17 @@ func TestDataUseCase_GetCard_Success(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -398,9 +451,17 @@ func TestDataUseCase_GetCard_NotFound(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -449,9 +510,17 @@ func TestDataUseCase_SaveCard_Success(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -510,9 +579,17 @@ func TestDataUseCase_GetText_Success(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -555,9 +632,17 @@ func TestDataUseCase_GetText_NotFound(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -597,9 +682,17 @@ func TestDataUseCase_SaveText_Success(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -653,9 +746,17 @@ func TestDataUseCase_DeleteCredential_Success(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -698,9 +799,17 @@ func TestDataUseCase_DeleteCredential_NotFound(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -737,9 +846,17 @@ func TestDataUseCase_DeleteCard_Success(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -777,10 +894,12 @@ func TestDataUseCase_DeleteCard_Success(t *testing.T) {
 func TestDataUseCase_DeleteCard_TokenError(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{}
+	mockJwtService := &MockJwtService{}
 
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -814,6 +933,7 @@ func TestDataUseCase_DeleteCard_NotFound(t *testing.T) {
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  &MockJwtService{},
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -847,6 +967,7 @@ func TestDataUseCase_DeleteCard_OtherError(t *testing.T) {
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  &MockJwtService{},
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -886,6 +1007,7 @@ func TestDataUseCase_DeleteText_Success(t *testing.T) {
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  &MockJwtService{},
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -927,6 +1049,7 @@ func TestDataUseCase_DeleteText_TokenError(t *testing.T) {
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  &MockJwtService{},
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -960,6 +1083,7 @@ func TestDataUseCase_DeleteText_NotFound(t *testing.T) {
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  &MockJwtService{},
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -993,6 +1117,7 @@ func TestDataUseCase_DeleteText_OtherError(t *testing.T) {
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
+		jwtService:  &MockJwtService{},
 	}
 
 	// Создаем тестовый HTTP запрос и ответ

@@ -1,8 +1,27 @@
 package usecase
 
 import (
+	"errors"
 	"github.com/SmirnovND/gophkeeper/internal/domain"
 )
+
+// MockJwtService - мок для интерфейса JwtService
+type MockJwtService struct {
+	ExtractLoginFromTokenFunc func(tokenString string) (string, error)
+}
+
+func (m *MockJwtService) ExtractLoginFromToken(tokenString string) (string, error) {
+	if m.ExtractLoginFromTokenFunc != nil {
+		return m.ExtractLoginFromTokenFunc(tokenString)
+	}
+	if tokenString == "Bearer valid-token" {
+		return "testuser", nil
+	}
+	if tokenString == "Bearer error-token" {
+		return "", errors.New("ошибка извлечения логина из токена")
+	}
+	return "", errors.New("неверный токен")
+}
 
 // MockDataService - мок для интерфейса DataService
 type MockDataService struct {

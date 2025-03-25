@@ -5,27 +5,29 @@ import (
 	"fmt"
 	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
-	"github.com/SmirnovND/gophkeeper/pkg"
 	"net/http"
 )
 
 type CloudUseCase struct {
 	cloudService interfaces.CloudService
 	dataService  interfaces.DataService
+	jwtService   interfaces.JwtService
 }
 
 func NewCloudUseCase(
 	cloudService interfaces.CloudService,
 	dataService interfaces.DataService,
+	jwtService interfaces.JwtService,
 ) interfaces.CloudUseCase {
 	return &CloudUseCase{
 		cloudService: cloudService,
 		dataService:  dataService,
+		jwtService:   jwtService,
 	}
 }
 
 func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, r *http.Request, fileData *domain.FileData) {
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := c.jwtService.ExtractLoginFromToken(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -68,7 +70,7 @@ func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, r *http.Request
 
 func (c *CloudUseCase) GenerateDownloadLink(w http.ResponseWriter, r *http.Request, label string) {
 	// Получаем логин пользователя из токена
-	login, err := pkg.ExtractLoginFromToken(r.Header.Get("Authorization"))
+	login, err := c.jwtService.ExtractLoginFromToken(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
 		return

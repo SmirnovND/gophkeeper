@@ -100,3 +100,7 @@ type DataService interface {
 	GetText(login string, label string) (*domain.TextData, error)
 	DeleteText(login string, label string) error
 }
+
+type JwtService interface {
+	ExtractLoginFromToken(tokenString string) (string, error)
+}

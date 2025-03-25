@@ -1,16 +1,23 @@
-package pkg
+package service
 
 import (
 	"errors"
 	"fmt"
+	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"strings"
 
 	"github.com/golang-jwt/jwt/v4"
 )
 
-// ExtractLoginFromToken извлекает значение поля login из JWT токена.
-// Токен должен быть в формате "Bearer <jwt-token>".
-func ExtractLoginFromToken(tokenString string) (string, error) {
+type JwtService struct {
+}
+
+// NewJwtService создает новый экземпляр JwtService
+func NewJwtService() interfaces.JwtService {
+	return &JwtService{}
+}
+
+func (j *JwtService) ExtractLoginFromToken(tokenString string) (string, error) {
 	// Проверяем, что токен начинается с "Bearer "
 	if !strings.HasPrefix(tokenString, "Bearer ") {
 		return "", errors.New("токен должен начинаться с 'Bearer '")

@@ -86,6 +86,7 @@ func (c *Container) provideService() {
 	c.container.Provide(service.NewAuthService)
 	c.container.Provide(service.NewUserService)
 	c.container.Provide(service.NewDataService)
+	c.container.Provide(service.NewJwtService)
 
 	c.container.Provide(func(minio *minio.Client, configServer interfaces.ConfigServer) interfaces.CloudService {
 		return service.NewCloud(minio, configServer.GetMinioBucketName())

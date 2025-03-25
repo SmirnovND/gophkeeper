@@ -79,7 +79,7 @@ func (s *TokenStorage) LoadToken() (string, error) {
 }
 
 // getConfigPath возвращает путь к файлу конфигурации.
-func getConfigPath() (string, error) {
+var getConfigPath = func() (string, error) {
 	dir, err := os.UserConfigDir()
 	if err != nil {
 		return "", err

@@ -731,6 +731,94 @@ func TestDataUseCase_SaveText_Success(t *testing.T) {
 	}
 }
 
+// TestDataUseCase_SaveText_TokenError проверяет обработку ошибки при извлечении логина из токена
+func TestDataUseCase_SaveText_TokenError(t *testing.T) {
+	// Создаем мок для DataService
+	mockDataService := &MockDataService{}
+
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "", errors.New("ошибка извлечения логина из токена")
+		},
+	}
+
+	// Создаем экземпляр DataUseCase
+	dataUseCase := &DataUseCase{
+		dataService: mockDataService,
+		jwtService:  mockJwtService,
+	}
+
+	// Создаем тестовый HTTP запрос и ответ
+	req := httptest.NewRequest("POST", "/api/data/text/test-text", nil)
+	req.Header.Set("Authorization", "Bearer error-token")
+	w := httptest.NewRecorder()
+
+	// Создаем данные для сохранения
+	textData := &domain.TextData{
+		Content: "test text content",
+	}
+
+	// Вызываем метод SaveText
+	dataUseCase.SaveText(w, req, "test-text", textData)
+
+	// Проверяем статус ответа
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("Ожидался статус %d, получен %d", http.StatusInternalServerError, w.Code)
+	}
+
+	// Проверяем сообщение об ошибке
+	if !strings.Contains(w.Body.String(), "Ошибка получения логина") {
+		t.Errorf("Ожидалось сообщение об ошибке с текстом 'Ошибка получения логина', получено '%s'", w.Body.String())
+	}
+}
+
+// TestDataUseCase_SaveText_Error проверяет обработку ошибки при сохранении текстовых данных
+func TestDataUseCase_SaveText_Error(t *testing.T) {
+	// Создаем мок для DataService
+	mockDataService := &MockDataService{
+		SaveTextFunc: func(login string, label string, textData *domain.TextData) error {
+			return errors.New("ошибка при сохранении текстовых данных")
+		},
+	}
+
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
+	// Создаем экземпляр DataUseCase
+	dataUseCase := &DataUseCase{
+		dataService: mockDataService,
+		jwtService:  mockJwtService,
+	}
+
+	// Создаем тестовый HTTP запрос и ответ
+	req := httptest.NewRequest("POST", "/api/data/text/test-text", nil)
+	req.Header.Set("Authorization", "Bearer valid-token")
+	w := httptest.NewRecorder()
+
+	// Создаем данные для сохранения
+	textData := &domain.TextData{
+		Content: "test text content",
+	}
+
+	// Вызываем метод SaveText
+	dataUseCase.SaveText(w, req, "test-text", textData)
+
+	// Проверяем статус ответа
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("Ожидался статус %d, получен %d", http.StatusInternalServerError, w.Code)
+	}
+
+	// Проверяем сообщение об ошибке
+	if !strings.Contains(w.Body.String(), "ошибка при сохранении текстовых данных") {
+		t.Errorf("Ожидалось сообщение об ошибке с текстом 'ошибка при сохранении текстовых данных', получено '%s'", w.Body.String())
+	}
+}
+
 // TestDataUseCase_DeleteCredential_Success проверяет успешное удаление учетных данных
 func TestDataUseCase_DeleteCredential_Success(t *testing.T) {
 	// Создаем мок для DataService

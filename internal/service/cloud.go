@@ -1,17 +1,18 @@
 package service
 
 import (
+	"context"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
-	"github.com/SmirnovND/gophkeeper/pkg"
-	"github.com/minio/minio-go/v7"
+	"net/url"
+	"time"
 )
 
 type Cloud struct {
-	minio      *minio.Client
+	minio      interfaces.MinioClientInterface
 	bucketName string
 }
 
-func NewCloud(minio *minio.Client, bucketName string) interfaces.CloudService {
+func NewCloud(minio interfaces.MinioClientInterface, bucketName string) interfaces.CloudService {
 	return &Cloud{
 		minio:      minio,
 		bucketName: bucketName,
@@ -19,9 +20,21 @@ func NewCloud(minio *minio.Client, bucketName string) interfaces.CloudService {
 }
 
 func (c *Cloud) GenerateUploadLink(fileName string) (string, error) {
-	return pkg.GeneratePreSignedURL(c.minio, c.bucketName, fileName)
+	ctx := context.Background()
+	presignedURL, err := c.minio.PresignedPutObject(ctx, c.bucketName, fileName, 15*time.Minute)
+	if err != nil {
+		return "", err
+	}
+	return presignedURL.String(), nil
 }
 
 func (c *Cloud) GenerateDownloadLink(fileName string) (string, error) {
-	return pkg.GenerateDownloadURL(c.minio, c.bucketName, fileName)
+	ctx := context.Background()
+	// Устанавливаем срок действия ссылки на 15 минут
+	reqParams := make(url.Values)
+	presignedURL, err := c.minio.PresignedGetObject(ctx, c.bucketName, fileName, 15*time.Minute, reqParams)
+	if err != nil {
+		return "", err
+	}
+	return presignedURL.String(), nil
 }

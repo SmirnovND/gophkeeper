@@ -69,12 +69,4 @@ func (a *AuthService) CheckPasswordHash(password, hash string) bool {
 func (a *AuthService) SetResponseAuthData(w http.ResponseWriter, token string) {
 	// Отправляем токен в заголовке Authorization
 	w.Header().Set("Authorization", "Bearer "+token)
-
-	// Установка cookie с токеном
-	http.SetCookie(w, &http.Cookie{
-		Name:     "auth_token",
-		Value:    token,
-		Path:     "/",
-		HttpOnly: true,
-	})
 }

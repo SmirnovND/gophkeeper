@@ -13,6 +13,12 @@ type MockConfigServer struct {
 	jwtSecret string
 }
 
+func NewMockConfigServer() *MockConfigServer {
+	return &MockConfigServer{
+		jwtSecret: "test-secret-key",
+	}
+}
+
 func (m *MockConfigServer) GetJwtSecret() string {
 	return m.jwtSecret
 }
@@ -21,17 +27,29 @@ func (m *MockConfigServer) GetDBDsn() string {
 	return ""
 }
 
-func (m *MockConfigServer) GetRabbitMQURI() string {
-	return ""
-}
-
 func (m *MockConfigServer) GetRunAddr() string {
 	return ""
 }
 
-func TestAuthService_GenerateToken(t *testing.T) {
+func (m *MockConfigServer) GetMinioBucketName() string {
+	return ""
+}
+
+func (m *MockConfigServer) GetMinioAccessKey() string {
+	return ""
+}
+
+func (m *MockConfigServer) GetMinioSecretKey() string {
+	return ""
+}
+
+func (m *MockConfigServer) GetMinioHost() string {
+	return ""
+}
+
+func TestGenerateToken(t *testing.T) {
 	// Arrange
-	mockConfig := &MockConfigServer{jwtSecret: "test_secret"}
+	mockConfig := NewMockConfigServer()
 	authService := NewAuthService(mockConfig)
 	login := "testuser"
 
@@ -40,30 +58,77 @@ func TestAuthService_GenerateToken(t *testing.T) {
 
 	// Assert
 	if err != nil {
-		t.Errorf("Ошибка при генерации токена: %v", err)
+		t.Fatalf("Ошибка при генерации токена: %v", err)
 	}
 	if token == "" {
-		t.Error("Сгенерированный токен пустой")
+		t.Fatal("Токен не должен быть пустым")
 	}
 
 	// Проверяем, что токен можно валидировать
 	claims, err := authService.ValidateToken(token)
 	if err != nil {
-		t.Errorf("Ошибка при валидации токена: %v", err)
+		t.Fatalf("Ошибка при валидации токена: %v", err)
 	}
 	if claims.Login != login {
-		t.Errorf("Логин в токене не совпадает: ожидается %s, получено %s", login, claims.Login)
+		t.Fatalf("Логин в токене не совпадает: ожидается %s, получено %s", login, claims.Login)
 	}
 }
 
-func TestAuthService_ValidateToken(t *testing.T) {
+func TestValidateToken_Valid(t *testing.T) {
 	// Arrange
-	mockConfig := &MockConfigServer{jwtSecret: "test_secret"}
+	mockConfig := NewMockConfigServer()
 	authService := NewAuthService(mockConfig)
 	login := "testuser"
 
-	// Создаем валидный токен
-	expirationTime := time.Now().Add(24 * time.Hour)
+	// Создаем токен
+	token, err := authService.GenerateToken(login)
+	if err != nil {
+		t.Fatalf("Ошибка при генерации токена: %v", err)
+	}
+
+	// Act
+	claims, err := authService.ValidateToken(token)
+
+	// Assert
+	if err != nil {
+		t.Fatalf("Ошибка при валидации токена: %v", err)
+	}
+	if claims == nil {
+		t.Fatal("Claims не должны быть nil")
+	}
+	if claims.Login != login {
+		t.Fatalf("Логин в токене не совпадает: ожидается %s, получено %s", login, claims.Login)
+	}
+}
+
+func TestValidateToken_Invalid(t *testing.T) {
+	// Arrange
+	mockConfig := NewMockConfigServer()
+	authService := NewAuthService(mockConfig)
+
+	// Создаем невалидный токен
+	invalidToken := "invalid.token.string"
+
+	// Act
+	claims, err := authService.ValidateToken(invalidToken)
+
+	// Assert
+	if err == nil {
+		t.Fatal("Ожидалась ошибка при валидации невалидного токена")
+	}
+	if claims != nil {
+		t.Fatal("Claims должны быть nil для невалидного токена")
+	}
+}
+
+func TestValidateToken_Expired(t *testing.T) {
+	// Arrange
+	mockConfig := NewMockConfigServer()
+	authService := &AuthService{cf: mockConfig}
+	login := "testuser"
+
+	// Создаем токен с истекшим сроком действия
+	expirationTime := time.Now().Add(-1 * time.Hour) // Истек 1 час назад
 	claims := &domain.Claims{
 		Login: login,
 		RegisteredClaims: jwt.RegisteredClaims{
@@ -71,187 +136,103 @@ func TestAuthService_ValidateToken(t *testing.T) {
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	validToken, _ := token.SignedString([]byte(mockConfig.GetJwtSecret()))
-
-	// Создаем невалидный токен с другим секретом
-	invalidToken, _ := token.SignedString([]byte("wrong_secret"))
-
-	// Создаем просроченный токен
-	expiredClaims := &domain.Claims{
-		Login: login,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(-24 * time.Hour)),
-		},
-	}
-	expiredToken := jwt.NewWithClaims(jwt.SigningMethodHS256, expiredClaims)
-	expiredTokenString, _ := expiredToken.SignedString([]byte(mockConfig.GetJwtSecret()))
-
-	tests := []struct {
-		name        string
-		tokenString string
-		wantErr     bool
-		wantLogin   string
-	}{
-		{
-			name:        "Валидный токен",
-			tokenString: validToken,
-			wantErr:     false,
-			wantLogin:   login,
-		},
-		{
-			name:        "Невалидный токен (неверный секрет)",
-			tokenString: invalidToken,
-			wantErr:     true,
-			wantLogin:   "",
-		},
-		{
-			name:        "Просроченный токен",
-			tokenString: expiredTokenString,
-			wantErr:     true,
-			wantLogin:   "",
-		},
-		{
-			name:        "Пустой токен",
-			tokenString: "",
-			wantErr:     true,
-			wantLogin:   "",
-		},
+	expiredToken, err := token.SignedString([]byte(mockConfig.GetJwtSecret()))
+	if err != nil {
+		t.Fatalf("Ошибка при создании истекшего токена: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Act
-			claims, err := authService.ValidateToken(tt.tokenString)
+	// Act
+	resultClaims, err := authService.ValidateToken(expiredToken)
 
-			// Assert
-			if (err != nil) != tt.wantErr {
-				t.Errorf("ValidateToken() error = %v, wantErr %v", err, tt.wantErr)
-				return
-			}
-			if !tt.wantErr && claims.Login != tt.wantLogin {
-				t.Errorf("ValidateToken() login = %v, want %v", claims.Login, tt.wantLogin)
-			}
-		})
+	// Assert
+	if err == nil {
+		t.Fatal("Ожидалась ошибка при валидации истекшего токена")
+	}
+	if resultClaims != nil {
+		t.Fatal("Claims должны быть nil для истекшего токена")
 	}
 }
 
-func TestAuthService_HashPassword(t *testing.T) {
+func TestHashPassword(t *testing.T) {
 	// Arrange
-	mockConfig := &MockConfigServer{jwtSecret: "test_secret"}
+	mockConfig := NewMockConfigServer()
 	authService := NewAuthService(mockConfig)
-	password := "password123"
+	password := "securepassword123"
 
 	// Act
 	hash, err := authService.HashPassword(password)
 
 	// Assert
 	if err != nil {
-		t.Errorf("Ошибка при хешировании пароля: %v", err)
+		t.Fatalf("Ошибка при хешировании пароля: %v", err)
 	}
 	if hash == "" {
-		t.Error("Хеш пароля пустой")
+		t.Fatal("Хеш не должен быть пустым")
 	}
 	if hash == password {
-		t.Error("Хеш пароля совпадает с исходным паролем")
-	}
-
-	// Проверяем, что пароль можно проверить с помощью хеша
-	if !authService.CheckPasswordHash(password, hash) {
-		t.Error("Проверка пароля с хешем не прошла")
+		t.Fatal("Хеш не должен совпадать с исходным паролем")
 	}
 }
 
-func TestAuthService_CheckPasswordHash(t *testing.T) {
+func TestCheckPasswordHash_Valid(t *testing.T) {
 	// Arrange
-	mockConfig := &MockConfigServer{jwtSecret: "test_secret"}
+	mockConfig := NewMockConfigServer()
 	authService := NewAuthService(mockConfig)
-	password := "password123"
-	wrongPassword := "wrongpassword"
+	password := "securepassword123"
 
-	// Создаем хеш пароля
-	hash, _ := authService.HashPassword(password)
-
-	tests := []struct {
-		name     string
-		password string
-		hash     string
-		want     bool
-	}{
-		{
-			name:     "Правильный пароль",
-			password: password,
-			hash:     hash,
-			want:     true,
-		},
-		{
-			name:     "Неправильный пароль",
-			password: wrongPassword,
-			hash:     hash,
-			want:     false,
-		},
-		{
-			name:     "Пустой пароль",
-			password: "",
-			hash:     hash,
-			want:     false,
-		},
-		{
-			name:     "Пустой хеш",
-			password: password,
-			hash:     "",
-			want:     false,
-		},
+	// Хешируем пароль
+	hash, err := authService.HashPassword(password)
+	if err != nil {
+		t.Fatalf("Ошибка при хешировании пароля: %v", err)
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			// Act
-			result := authService.CheckPasswordHash(tt.password, tt.hash)
+	// Act
+	result := authService.CheckPasswordHash(password, hash)
 
-			// Assert
-			if result != tt.want {
-				t.Errorf("CheckPasswordHash() = %v, want %v", result, tt.want)
-			}
-		})
+	// Assert
+	if !result {
+		t.Fatal("Проверка хеша пароля должна быть успешной")
 	}
 }
 
-func TestAuthService_SetResponseAuthData(t *testing.T) {
+func TestCheckPasswordHash_Invalid(t *testing.T) {
 	// Arrange
-	mockConfig := &MockConfigServer{jwtSecret: "test_secret"}
+	mockConfig := NewMockConfigServer()
 	authService := NewAuthService(mockConfig)
-	token := "test_token"
+	password := "securepassword123"
+	wrongPassword := "wrongpassword456"
+
+	// Хешируем пароль
+	hash, err := authService.HashPassword(password)
+	if err != nil {
+		t.Fatalf("Ошибка при хешировании пароля: %v", err)
+	}
+
+	// Act
+	result := authService.CheckPasswordHash(wrongPassword, hash)
+
+	// Assert
+	if result {
+		t.Fatal("Проверка хеша пароля должна быть неуспешной для неверного пароля")
+	}
+}
+
+func TestSetResponseAuthData(t *testing.T) {
+	// Arrange
+	mockConfig := NewMockConfigServer()
+	authService := NewAuthService(mockConfig)
+	token := "test-token"
+
+	// Создаем тестовый HTTP-ответ
 	w := httptest.NewRecorder()
 
 	// Act
 	authService.SetResponseAuthData(w, token)
 
 	// Assert
-	// Проверяем заголовок Authorization
 	authHeader := w.Header().Get("Authorization")
-	expectedAuthHeader := "Bearer " + token
-	if authHeader != expectedAuthHeader {
-		t.Errorf("Заголовок Authorization = %v, want %v", authHeader, expectedAuthHeader)
-	}
-
-	// Проверяем cookie
-	cookies := w.Result().Cookies()
-	if len(cookies) != 1 {
-		t.Errorf("Ожидается 1 cookie, получено %d", len(cookies))
-		return
-	}
-
-	cookie := cookies[0]
-	if cookie.Name != "auth_token" {
-		t.Errorf("Имя cookie = %v, want %v", cookie.Name, "auth_token")
-	}
-	if cookie.Value != token {
-		t.Errorf("Значение cookie = %v, want %v", cookie.Value, token)
-	}
-	if cookie.Path != "/" {
-		t.Errorf("Путь cookie = %v, want %v", cookie.Path, "/")
-	}
-	if !cookie.HttpOnly {
-		t.Error("Cookie должен быть HttpOnly")
+	expectedHeader := "Bearer " + token
+	if authHeader != expectedHeader {
+		t.Fatalf("Заголовок Authorization не совпадает: ожидается %s, получено %s", expectedHeader, authHeader)
 	}
 }

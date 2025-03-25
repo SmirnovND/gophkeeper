@@ -13,19 +13,16 @@ import (
 )
 
 func Handler(diContainer *server.Container) http.Handler {
-	var HealthcheckController *controllers.HealthcheckController
 	var AuthController *controllers.AuthController
 	var FileController *controllers.FileController
 	var DataController *controllers.DataController
 	var cf interfaces.ConfigServer
 	err := diContainer.Invoke(func(
 		c interfaces.ConfigServer,
-		healthcheckControl *controllers.HealthcheckController,
 		authControl *controllers.AuthController,
 		fileControl *controllers.FileController,
 		dataControl *controllers.DataController,
 	) {
-		HealthcheckController = healthcheckControl
 		AuthController = authControl
 		FileController = fileControl
 		DataController = dataControl
@@ -84,8 +81,6 @@ func Handler(diContainer *server.Container) http.Handler {
 			r.Delete("/", DataController.DeleteText)
 		})
 	})
-
-	r.Get("/ping", HealthcheckController.HandlePing)
 
 	// Обработчик для неподходящего метода (405 Method Not Allowed)
 	r.MethodNotAllowed(func(w http.ResponseWriter, r *http.Request) {

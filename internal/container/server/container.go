@@ -95,7 +95,6 @@ func (c *Container) provideService() {
 
 func (c *Container) provideController() {
 	c.container.Provide(controllers.NewAuthController)
-	c.container.Provide(controllers.NewHealthcheckController)
 	c.container.Provide(controllers.NewFileController)
 	c.container.Provide(controllers.NewDataController)
 }

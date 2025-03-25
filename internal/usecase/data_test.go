@@ -773,6 +773,101 @@ func TestDataUseCase_DeleteCard_Success(t *testing.T) {
 	}
 }
 
+// TestDataUseCase_DeleteCard_TokenError проверяет обработку ошибки при извлечении логина из токена
+func TestDataUseCase_DeleteCard_TokenError(t *testing.T) {
+	// Создаем мок для DataService
+	mockDataService := &MockDataService{}
+
+	// Создаем экземпляр DataUseCase
+	dataUseCase := &DataUseCase{
+		dataService: mockDataService,
+	}
+
+	// Создаем тестовый HTTP запрос и ответ
+	req := httptest.NewRequest("DELETE", "/api/data/card/test-card", nil)
+	req.Header.Set("Authorization", "Bearer error-token")
+	w := httptest.NewRecorder()
+
+	// Вызываем метод DeleteCard
+	dataUseCase.DeleteCard(w, req, "test-card")
+
+	// Проверяем статус ответа
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("Ожидался статус %d, получен %d", http.StatusInternalServerError, w.Code)
+	}
+
+	// Проверяем сообщение об ошибке
+	if !strings.Contains(w.Body.String(), "Ошибка получения логина") {
+		t.Errorf("Ожидалось сообщение об ошибке с текстом 'Ошибка получения логина', получено '%s'", w.Body.String())
+	}
+}
+
+// TestDataUseCase_DeleteCard_NotFound проверяет обработку ошибки "данные карты не найдены"
+func TestDataUseCase_DeleteCard_NotFound(t *testing.T) {
+	// Создаем мок для DataService
+	mockDataService := &MockDataService{
+		DeleteCardFunc: func(login string, label string) error {
+			return errors.New("данные карты не найдены")
+		},
+	}
+
+	// Создаем экземпляр DataUseCase
+	dataUseCase := &DataUseCase{
+		dataService: mockDataService,
+	}
+
+	// Создаем тестовый HTTP запрос и ответ
+	req := httptest.NewRequest("DELETE", "/api/data/card/test-card", nil)
+	req.Header.Set("Authorization", "Bearer valid-token")
+	w := httptest.NewRecorder()
+
+	// Вызываем метод DeleteCard
+	dataUseCase.DeleteCard(w, req, "test-card")
+
+	// Проверяем статус ответа
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Ожидался статус %d, получен %d", http.StatusNotFound, w.Code)
+	}
+
+	// Проверяем сообщение об ошибке
+	if !strings.Contains(w.Body.String(), "данные карты не найдены") {
+		t.Errorf("Ожидалось сообщение об ошибке с текстом 'данные карты не найдены', получено '%s'", w.Body.String())
+	}
+}
+
+// TestDataUseCase_DeleteCard_OtherError проверяет обработку других ошибок
+func TestDataUseCase_DeleteCard_OtherError(t *testing.T) {
+	// Создаем мок для DataService
+	mockDataService := &MockDataService{
+		DeleteCardFunc: func(login string, label string) error {
+			return errors.New("внутренняя ошибка сервера")
+		},
+	}
+
+	// Создаем экземпляр DataUseCase
+	dataUseCase := &DataUseCase{
+		dataService: mockDataService,
+	}
+
+	// Создаем тестовый HTTP запрос и ответ
+	req := httptest.NewRequest("DELETE", "/api/data/card/test-card", nil)
+	req.Header.Set("Authorization", "Bearer valid-token")
+	w := httptest.NewRecorder()
+
+	// Вызываем метод DeleteCard
+	dataUseCase.DeleteCard(w, req, "test-card")
+
+	// Проверяем статус ответа
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("Ожидался статус %d, получен %d", http.StatusInternalServerError, w.Code)
+	}
+
+	// Проверяем сообщение об ошибке
+	if !strings.Contains(w.Body.String(), "внутренняя ошибка сервера") {
+		t.Errorf("Ожидалось сообщение об ошибке с текстом 'внутренняя ошибка сервера', получено '%s'", w.Body.String())
+	}
+}
+
 // TestDataUseCase_DeleteText_Success проверяет успешное удаление текстовых данных
 func TestDataUseCase_DeleteText_Success(t *testing.T) {
 	// Создаем мок для DataService
@@ -821,5 +916,100 @@ func TestDataUseCase_DeleteText_Success(t *testing.T) {
 
 	if message, ok := response["message"]; !ok || message != "текстовые данные успешно удалены" {
 		t.Errorf("Ожидалось сообщение 'текстовые данные успешно удалены', получено '%v'", response)
+	}
+}
+
+// TestDataUseCase_DeleteText_TokenError проверяет обработку ошибки при извлечении логина из токена
+func TestDataUseCase_DeleteText_TokenError(t *testing.T) {
+	// Создаем мок для DataService
+	mockDataService := &MockDataService{}
+
+	// Создаем экземпляр DataUseCase
+	dataUseCase := &DataUseCase{
+		dataService: mockDataService,
+	}
+
+	// Создаем тестовый HTTP запрос и ответ
+	req := httptest.NewRequest("DELETE", "/api/data/text/test-text", nil)
+	req.Header.Set("Authorization", "Bearer error-token")
+	w := httptest.NewRecorder()
+
+	// Вызываем метод DeleteText
+	dataUseCase.DeleteText(w, req, "test-text")
+
+	// Проверяем статус ответа
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("Ожидался статус %d, получен %d", http.StatusInternalServerError, w.Code)
+	}
+
+	// Проверяем сообщение об ошибке
+	if !strings.Contains(w.Body.String(), "Ошибка получения логина") {
+		t.Errorf("Ожидалось сообщение об ошибке с текстом 'Ошибка получения логина', получено '%s'", w.Body.String())
+	}
+}
+
+// TestDataUseCase_DeleteText_NotFound проверяет обработку ошибки "текстовые данные не найдены"
+func TestDataUseCase_DeleteText_NotFound(t *testing.T) {
+	// Создаем мок для DataService
+	mockDataService := &MockDataService{
+		DeleteTextFunc: func(login string, label string) error {
+			return errors.New("текстовые данные не найдены")
+		},
+	}
+
+	// Создаем экземпляр DataUseCase
+	dataUseCase := &DataUseCase{
+		dataService: mockDataService,
+	}
+
+	// Создаем тестовый HTTP запрос и ответ
+	req := httptest.NewRequest("DELETE", "/api/data/text/test-text", nil)
+	req.Header.Set("Authorization", "Bearer valid-token")
+	w := httptest.NewRecorder()
+
+	// Вызываем метод DeleteText
+	dataUseCase.DeleteText(w, req, "test-text")
+
+	// Проверяем статус ответа
+	if w.Code != http.StatusNotFound {
+		t.Errorf("Ожидался статус %d, получен %d", http.StatusNotFound, w.Code)
+	}
+
+	// Проверяем сообщение об ошибке
+	if !strings.Contains(w.Body.String(), "текстовые данные не найдены") {
+		t.Errorf("Ожидалось сообщение об ошибке с текстом 'текстовые данные не найдены', получено '%s'", w.Body.String())
+	}
+}
+
+// TestDataUseCase_DeleteText_OtherError проверяет обработку других ошибок
+func TestDataUseCase_DeleteText_OtherError(t *testing.T) {
+	// Создаем мок для DataService
+	mockDataService := &MockDataService{
+		DeleteTextFunc: func(login string, label string) error {
+			return errors.New("внутренняя ошибка сервера")
+		},
+	}
+
+	// Создаем экземпляр DataUseCase
+	dataUseCase := &DataUseCase{
+		dataService: mockDataService,
+	}
+
+	// Создаем тестовый HTTP запрос и ответ
+	req := httptest.NewRequest("DELETE", "/api/data/text/test-text", nil)
+	req.Header.Set("Authorization", "Bearer valid-token")
+	w := httptest.NewRecorder()
+
+	// Вызываем метод DeleteText
+	dataUseCase.DeleteText(w, req, "test-text")
+
+	// Проверяем статус ответа
+	if w.Code != http.StatusInternalServerError {
+		t.Errorf("Ожидался статус %d, получен %d", http.StatusInternalServerError, w.Code)
+	}
+
+	// Проверяем сообщение об ошибке
+	if !strings.Contains(w.Body.String(), "внутренняя ошибка сервера") {
+		t.Errorf("Ожидалось сообщение об ошибке с текстом 'внутренняя ошибка сервера', получено '%s'", w.Body.String())
 	}
 }

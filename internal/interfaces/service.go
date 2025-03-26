@@ -49,27 +49,27 @@ type ClientService interface {
 	// Register выполняет запрос к API сервера для регистрации пользователя и получения токена
 	Register(login string, password string) (string, error)
 
-	GetUploadLink(label string, extension string, token string) (string, error)
+	GetUploadLink(label string, extension string, metadata string, token string) (string, error)
 
-	GetDownloadLink(label string, token string) (string, *domain.FileMetadata, error)
+	GetDownloadLink(label string, token string) (string, *domain.FileMetadata, string, error)
 
 	SendFileToServer(url string, file *os.File) (string, error)
 
 	DownloadFileFromServer(url string, outputPath string) error
 
 	// Методы для работы с текстовыми данными
-	SaveText(label string, textData *domain.TextData, token string) error
-	GetText(label string, token string) (*domain.TextData, error)
+	SaveText(label string, textData *domain.TextData, metadata string, token string) error
+	GetText(label string, token string) (*domain.TextData, string, error)
 	DeleteText(label string, token string) error
 
 	// Методы для работы с данными кредитных карт
-	SaveCard(label string, cardData *domain.CardData, token string) error
-	GetCard(label string, token string) (*domain.CardData, error)
+	SaveCard(label string, cardData *domain.CardData, metadata string, token string) error
+	GetCard(label string, token string) (*domain.CardData, string, error)
 	DeleteCard(label string, token string) error
 
 	// Методы для работы с учетными данными
-	SaveCredential(label string, credentialData *domain.CredentialData, token string) error
-	GetCredential(label string, token string) (*domain.CredentialData, error)
+	SaveCredential(label string, credentialData *domain.CredentialData, metadata string, token string) error
+	GetCredential(label string, token string) (*domain.CredentialData, string, error)
 	DeleteCredential(label string, token string) error
 }
 
@@ -81,23 +81,23 @@ type CloudService interface {
 // DataService определяет интерфейс для работы с данными пользователя
 type DataService interface {
 	// Методы для работы с файлами
-	SaveFileMetadata(login string, label string, fileData *domain.FileData) error
-	GetFileMetadata(login string, label string) (*domain.FileMetadata, error)
+	SaveFileMetadata(login string, label string, fileData *domain.FileData, metadata string) error
+	GetFileMetadata(login string, label string) (*domain.FileMetadata, string, error)
 	DeleteFileMetadata(login string, label string) error
 
 	// Методы для работы с учетными данными (логин/пароль)
-	SaveCredential(login string, label string, credentialData *domain.CredentialData) error
-	GetCredential(login string, label string) (*domain.CredentialData, error)
+	SaveCredential(login string, label string, credentialData *domain.CredentialData, metadata string) error
+	GetCredential(login string, label string) (*domain.CredentialData, string, error)
 	DeleteCredential(login string, label string) error
 
 	// Методы для работы с данными кредитных карт
-	SaveCard(login string, label string, cardData *domain.CardData) error
-	GetCard(login string, label string) (*domain.CardData, error)
+	SaveCard(login string, label string, cardData *domain.CardData, metadata string) error
+	GetCard(login string, label string) (*domain.CardData, string, error)
 	DeleteCard(login string, label string) error
 
 	// Методы для работы с текстовыми данными
-	SaveText(login string, label string, textData *domain.TextData) error
-	GetText(login string, label string) (*domain.TextData, error)
+	SaveText(login string, label string, textData *domain.TextData, metadata string) error
+	GetText(login string, label string) (*domain.TextData, string, error)
 	DeleteText(login string, label string) error
 }
 

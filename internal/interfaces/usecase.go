@@ -24,18 +24,18 @@ type ClientUseCase interface {
 	Download(label string) error
 	
 	// Методы для работы с текстовыми данными
-	SaveText(label string, textData *domain.TextData) error
-	GetText(label string) (*domain.TextData, error)
+	SaveText(label string, textData *domain.TextData, metadata string) error
+	GetText(label string) (*domain.TextData, string, error)
 	DeleteText(label string) error
 	
 	// Методы для работы с данными кредитных карт
-	SaveCard(label string, cardData *domain.CardData) error
-	GetCard(label string) (*domain.CardData, error)
+	SaveCard(label string, cardData *domain.CardData, metadata string) error
+	GetCard(label string) (*domain.CardData, string, error)
 	DeleteCard(label string) error
 	
 	// Методы для работы с учетными данными
-	SaveCredential(label string, credentialData *domain.CredentialData) error
-	GetCredential(label string) (*domain.CredentialData, error)
+	SaveCredential(label string, credentialData *domain.CredentialData, metadata string) error
+	GetCredential(label string) (*domain.CredentialData, string, error)
 	DeleteCredential(label string) error
 }
 
@@ -45,15 +45,15 @@ type CloudUseCase interface {
 }
 
 type DataUseCase interface {
-	SaveCredential(w http.ResponseWriter, r *http.Request, label string, credentialData *domain.CredentialData)
+	SaveCredential(w http.ResponseWriter, r *http.Request, label string, credentialData *domain.CredentialData, metadata string)
 	GetCredential(w http.ResponseWriter, r *http.Request, label string)
 	DeleteCredential(w http.ResponseWriter, r *http.Request, label string)
 
-	SaveCard(w http.ResponseWriter, r *http.Request, label string, cardData *domain.CardData)
+	SaveCard(w http.ResponseWriter, r *http.Request, label string, cardData *domain.CardData, metadata string)
 	GetCard(w http.ResponseWriter, r *http.Request, label string)
 	DeleteCard(w http.ResponseWriter, r *http.Request, label string)
 
-	SaveText(w http.ResponseWriter, r *http.Request, label string, textData *domain.TextData)
+	SaveText(w http.ResponseWriter, r *http.Request, label string, textData *domain.TextData, metadata string)
 	GetText(w http.ResponseWriter, r *http.Request, label string)
 	DeleteText(w http.ResponseWriter, r *http.Request, label string)
 }

@@ -1,10 +1,12 @@
 package command
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"github.com/spf13/cobra"
 	"os"
+	"strings"
 )
 
 // SaveTextCmd создает команду для сохранения текстовых данных
@@ -13,7 +15,7 @@ func (c *Command) SaveTextCmd() *cobra.Command {
 		Use:   "save-text",
 		Short: "Сохранение текстовых данных",
 		Run: func(cmd *cobra.Command, args []string) {
-			var label, content string
+			var label, content, metadata string
 
 			fmt.Println("Введите уникальное название (label) для текстовых данных:")
 			fmt.Print("> ")
@@ -22,9 +24,14 @@ func (c *Command) SaveTextCmd() *cobra.Command {
 			fmt.Println("Введите текст для сохранения:")
 			fmt.Print("> ")
 			// Используем bufio.Scanner для чтения многострочного текста
-			var buffer string
-			fmt.Fscanln(os.Stdin, &buffer)
-			content = buffer
+			reader := bufio.NewReader(os.Stdin)
+			content, _ = reader.ReadString('\n')
+			content = strings.TrimSpace(content)
+
+			fmt.Println("Введите метаинформацию (необязательно):")
+			fmt.Print("> ")
+			metadata, _ = reader.ReadString('\n')
+			metadata = strings.TrimSpace(metadata)
 
 			// Создаем структуру TextData
 			textData := &domain.TextData{
@@ -32,7 +39,7 @@ func (c *Command) SaveTextCmd() *cobra.Command {
 			}
 
 			// Вызываем метод сохранения текста
-			err := c.clientUseCase.SaveText(label, textData)
+			err := c.clientUseCase.SaveText(label, textData, metadata)
 			if err != nil {
 				fmt.Println("Ошибка при сохранении текста:", err)
 				return
@@ -53,10 +60,12 @@ func (c *Command) GetTextCmd() *cobra.Command {
 
 			fmt.Println("Введите уникальное название (label) текстовых данных для получения:")
 			fmt.Print("> ")
-			fmt.Fscanln(os.Stdin, &label)
+			reader := bufio.NewReader(os.Stdin)
+			label, _ = reader.ReadString('\n')
+			label = strings.TrimSpace(label)
 
 			// Вызываем метод получения текста
-			textData, err := c.clientUseCase.GetText(label)
+			textData, metadata, err := c.clientUseCase.GetText(label)
 			if err != nil {
 				fmt.Println("Ошибка при получении текста:", err)
 				return
@@ -66,6 +75,13 @@ func (c *Command) GetTextCmd() *cobra.Command {
 			fmt.Println("------------------")
 			fmt.Println(textData.Content)
 			fmt.Println("------------------")
+			
+			if metadata != "" {
+				fmt.Println("\nМетаинформация:")
+				fmt.Println("------------------")
+				fmt.Println(metadata)
+				fmt.Println("------------------")
+			}
 		},
 	}
 }
@@ -100,7 +116,7 @@ func (c *Command) SaveCardCmd() *cobra.Command {
 		Use:   "save-card",
 		Short: "Сохранение данных кредитной карты",
 		Run: func(cmd *cobra.Command, args []string) {
-			var label, number, holder, expiryDate, cvv string
+			var label, number, holder, expiryDate, cvv, metadata string
 
 			fmt.Println("Введите уникальное название (label) для данных карты:")
 			fmt.Print("> ")
@@ -122,6 +138,10 @@ func (c *Command) SaveCardCmd() *cobra.Command {
 			fmt.Print("> ")
 			fmt.Fscanln(os.Stdin, &cvv)
 
+			fmt.Println("Введите метаинформацию (необязательно):")
+			fmt.Print("> ")
+			fmt.Fscanln(os.Stdin, &metadata)
+
 			// Создаем структуру CardData
 			cardData := &domain.CardData{
 				Number:     number,
@@ -131,7 +151,7 @@ func (c *Command) SaveCardCmd() *cobra.Command {
 			}
 
 			// Вызываем метод сохранения данных карты
-			err := c.clientUseCase.SaveCard(label, cardData)
+			err := c.clientUseCase.SaveCard(label, cardData, metadata)
 			if err != nil {
 				fmt.Println("Ошибка при сохранении данных карты:", err)
 				return
@@ -155,7 +175,7 @@ func (c *Command) GetCardCmd() *cobra.Command {
 			fmt.Fscanln(os.Stdin, &label)
 
 			// Вызываем метод получения данных карты
-			cardData, err := c.clientUseCase.GetCard(label)
+			cardData, metadata, err := c.clientUseCase.GetCard(label)
 			if err != nil {
 				fmt.Println("Ошибка при получении данных карты:", err)
 				return
@@ -168,6 +188,13 @@ func (c *Command) GetCardCmd() *cobra.Command {
 			fmt.Println("Срок действия:", cardData.ExpiryDate)
 			fmt.Println("CVV код:", cardData.CVV)
 			fmt.Println("------------------------")
+			
+			if metadata != "" {
+				fmt.Println("\nМетаинформация:")
+				fmt.Println("------------------")
+				fmt.Println(metadata)
+				fmt.Println("------------------")
+			}
 		},
 	}
 }
@@ -202,7 +229,7 @@ func (c *Command) SaveCredentialCmd() *cobra.Command {
 		Use:   "save-credential",
 		Short: "Сохранение учетных данных (логин/пароль)",
 		Run: func(cmd *cobra.Command, args []string) {
-			var label, login, password string
+			var label, login, password, metadata string
 
 			fmt.Println("Введите уникальное название (label) для учетных данных:")
 			fmt.Print("> ")
@@ -216,6 +243,10 @@ func (c *Command) SaveCredentialCmd() *cobra.Command {
 			fmt.Print("> ")
 			fmt.Fscanln(os.Stdin, &password)
 
+			fmt.Println("Введите метаинформацию (необязательно):")
+			fmt.Print("> ")
+			fmt.Fscanln(os.Stdin, &metadata)
+
 			// Создаем структуру CredentialData
 			credentialData := &domain.CredentialData{
 				Login:    login,
@@ -223,7 +254,7 @@ func (c *Command) SaveCredentialCmd() *cobra.Command {
 			}
 
 			// Вызываем метод сохранения учетных данных
-			err := c.clientUseCase.SaveCredential(label, credentialData)
+			err := c.clientUseCase.SaveCredential(label, credentialData, metadata)
 			if err != nil {
 				fmt.Println("Ошибка при сохранении учетных данных:", err)
 				return
@@ -247,7 +278,7 @@ func (c *Command) GetCredentialCmd() *cobra.Command {
 			fmt.Fscanln(os.Stdin, &label)
 
 			// Вызываем метод получения учетных данных
-			credentialData, err := c.clientUseCase.GetCredential(label)
+			credentialData, metadata, err := c.clientUseCase.GetCredential(label)
 			if err != nil {
 				fmt.Println("Ошибка при получении учетных данных:", err)
 				return
@@ -258,6 +289,13 @@ func (c *Command) GetCredentialCmd() *cobra.Command {
 			fmt.Println("Логин:", credentialData.Login)
 			fmt.Println("Пароль:", credentialData.Password)
 			fmt.Println("---------------")
+			
+			if metadata != "" {
+				fmt.Println("\nМетаинформация:")
+				fmt.Println("------------------")
+				fmt.Println(metadata)
+				fmt.Println("------------------")
+			}
 		},
 	}
 }

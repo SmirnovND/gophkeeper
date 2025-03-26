@@ -31,22 +31,22 @@ func (r *UserDataRepo) SaveUserData(userData *domain.UserData) error {
 	// Если запись существует, обновляем ее
 	if existingData != nil {
 		query := `UPDATE "user_data"
-				  SET type = $1, data = $2
-				  WHERE user_id = $3 AND label = $4
+				  SET type = $1, data = $2, metadata = $3
+				  WHERE user_id = $4 AND label = $5
 				  RETURNING id, created_at, updated_at`
 
-		err := r.db.QueryRow(query, userData.Type, userData.Data, userData.UserID, userData.Label).
+		err := r.db.QueryRow(query, userData.Type, userData.Data, userData.Metadata, userData.UserID, userData.Label).
 			Scan(&userData.ID, &userData.CreatedAt, &userData.UpdatedAt)
 		if err != nil {
 			return fmt.Errorf("error updating user data: %w", err)
 		}
 	} else {
 		// Если записи не существует, создаем новую
-		query := `INSERT INTO "user_data" (user_id, label, type, data)
-				  VALUES ($1, $2, $3, $4)
+		query := `INSERT INTO "user_data" (user_id, label, type, data, metadata)
+				  VALUES ($1, $2, $3, $4, $5)
 				  RETURNING id, created_at, updated_at`
 
-		err := r.db.QueryRow(query, userData.UserID, userData.Label, userData.Type, userData.Data).
+		err := r.db.QueryRow(query, userData.UserID, userData.Label, userData.Type, userData.Data, userData.Metadata).
 			Scan(&userData.ID, &userData.CreatedAt, &userData.UpdatedAt)
 		if err != nil {
 			return fmt.Errorf("error saving user data: %w", err)
@@ -58,7 +58,7 @@ func (r *UserDataRepo) SaveUserData(userData *domain.UserData) error {
 
 // FindUserDataByLabel ищет данные пользователя по метке
 func (r *UserDataRepo) FindUserDataByLabel(userID, label string) (*domain.UserData, error) {
-	query := `SELECT id, user_id, label, type, data, created_at, updated_at
+	query := `SELECT id, user_id, label, type, data, metadata, created_at, updated_at
               FROM "user_data"
               WHERE user_id = $1 AND label = $2
               LIMIT 1`
@@ -71,6 +71,7 @@ func (r *UserDataRepo) FindUserDataByLabel(userID, label string) (*domain.UserDa
 		&userData.Label,
 		&userData.Type,
 		&userData.Data,
+		&userData.Metadata,
 		&userData.CreatedAt,
 		&userData.UpdatedAt,
 	)
@@ -107,7 +108,7 @@ func (r *UserDataRepo) DeleteUserData(id string) error {
 
 // GetUserDataByLabelAndType ищет данные пользователя по метке и типу
 func (r *UserDataRepo) GetUserDataByLabelAndType(userID, label string, dataType string) (*domain.UserData, error) {
-	query := `SELECT id, user_id, label, type, data, created_at, updated_at
+	query := `SELECT id, user_id, label, type, data, metadata, created_at, updated_at
               FROM "user_data"
               WHERE user_id = $1 AND label = $2 AND type = $3
               LIMIT 1`
@@ -120,6 +121,7 @@ func (r *UserDataRepo) GetUserDataByLabelAndType(userID, label string, dataType 
 		&userData.Label,
 		&userData.Type,
 		&userData.Data,
+		&userData.Metadata,
 		&userData.CreatedAt,
 		&userData.UpdatedAt,
 	)

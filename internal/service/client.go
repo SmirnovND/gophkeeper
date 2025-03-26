@@ -87,7 +87,7 @@ func (c *ClientService) Register(login, password string) (string, error) {
 	return token, nil
 }
 
-func (c *ClientService) GetUploadLink(label string, extension string, token string) (string, error) {
+func (c *ClientService) GetUploadLink(label string, extension string, metadata string, token string) (string, error) {
 	// Запрос на получение ссылки для загрузки файла
 	url := "http://" + c.serverAddr + "/api/file/upload"
 
@@ -95,9 +95,11 @@ func (c *ClientService) GetUploadLink(label string, extension string, token stri
 	requestData := struct {
 		Name      string `json:"name"`
 		Extension string `json:"extension"`
+		Metadata  string `json:"metadata"`
 	}{
 		Name:      label,
 		Extension: extension,
+		Metadata:  metadata,
 	}
 
 	// Преобразуем структуру в JSON
@@ -183,14 +185,14 @@ func (c *ClientService) SendFileToServer(url string, file *os.File) (string, err
 	}
 }
 
-func (c *ClientService) GetDownloadLink(label string, token string) (string, *domain.FileMetadata, error) {
+func (c *ClientService) GetDownloadLink(label string, token string) (string, *domain.FileMetadata, string, error) {
 	// Формируем URL для запроса на получение ссылки для скачивания
 	url := fmt.Sprintf("http://%s/api/file/download?label=%s", c.serverAddr, label)
 
 	// Создаем запрос
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return "", nil, fmt.Errorf("ошибка при создании запроса: %w", err)
+		return "", nil, "", fmt.Errorf("ошибка при создании запроса: %w", err)
 	}
 
 	// Устанавливаем заголовок авторизации
@@ -199,32 +201,33 @@ func (c *ClientService) GetDownloadLink(label string, token string) (string, *do
 	// Выполняем запрос
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return "", nil, fmt.Errorf("ошибка при выполнении запроса: %w", err)
+		return "", nil, "", fmt.Errorf("ошибка при выполнении запроса: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Проверяем статус ответа
 	if resp.StatusCode != http.StatusOK {
-		return "", nil, fmt.Errorf("ошибка при получении ссылки для скачивания, код ответа: %d", resp.StatusCode)
+		return "", nil, "", fmt.Errorf("ошибка при получении ссылки для скачивания, код ответа: %d", resp.StatusCode)
 	}
 
 	// Чтение ответа сервера
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", nil, fmt.Errorf("ошибка при чтении ответа сервера: %w", err)
+		return "", nil, "", fmt.Errorf("ошибка при чтении ответа сервера: %w", err)
 	}
 
-	// Извлекаем URL и метаданные из ответа
+	// Извлекаем URL, метаданные и метаинформацию из ответа
 	var response struct {
 		URL         string              `json:"url"`
 		Description string              `json:"description"`
 		Metadata    domain.FileMetadata `json:"metadata"`
+		MetaInfo    string              `json:"meta_info"`
 	}
 	if err := json.Unmarshal(respBody, &response); err != nil {
-		return "", nil, fmt.Errorf("ошибка при парсинге ответа: %w", err)
+		return "", nil, "", fmt.Errorf("ошибка при парсинге ответа: %w", err)
 	}
 
-	return response.URL, &response.Metadata, nil
+	return response.URL, &response.Metadata, response.MetaInfo, nil
 }
 
 func (c *ClientService) DownloadFileFromServer(url string, outputPath string) error {
@@ -263,11 +266,20 @@ func (c *ClientService) DownloadFileFromServer(url string, outputPath string) er
 }
 
 // SaveText сохраняет текстовые данные
-func (c *ClientService) SaveText(label string, textData *domain.TextData, token string) error {
+func (c *ClientService) SaveText(label string, textData *domain.TextData, metadata string, token string) error {
 	url := fmt.Sprintf("http://%s/api/data/text/%s", c.serverAddr, label)
 
+	// Создаем структуру для запроса, включающую метаинформацию
+	requestData := struct {
+		TextData *domain.TextData `json:"text_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		TextData: textData,
+		Metadata: metadata,
+	}
+
 	// Преобразуем данные в JSON
-	jsonData, err := json.Marshal(textData)
+	jsonData, err := json.Marshal(requestData)
 	if err != nil {
 		return fmt.Errorf("ошибка при маршалинге данных: %w", err)
 	}
@@ -298,13 +310,13 @@ func (c *ClientService) SaveText(label string, textData *domain.TextData, token 
 }
 
 // GetText получает текстовые данные
-func (c *ClientService) GetText(label string, token string) (*domain.TextData, error) {
+func (c *ClientService) GetText(label string, token string) (*domain.TextData, string, error) {
 	url := fmt.Sprintf("http://%s/api/data/text/%s", c.serverAddr, label)
 
 	// Создаем запрос
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при создании запроса: %w", err)
+		return nil, "", fmt.Errorf("ошибка при создании запроса: %w", err)
 	}
 
 	// Устанавливаем заголовки
@@ -314,30 +326,33 @@ func (c *ClientService) GetText(label string, token string) (*domain.TextData, e
 	// Выполняем запрос
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при выполнении запроса: %w", err)
+		return nil, "", fmt.Errorf("ошибка при выполнении запроса: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Проверяем статус ответа
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("текстовые данные не найдены")
+		return nil, "", fmt.Errorf("текстовые данные не найдены")
 	} else if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("ошибка при получении текстовых данных, код ответа: %d", resp.StatusCode)
+		return nil, "", fmt.Errorf("ошибка при получении текстовых данных, код ответа: %d", resp.StatusCode)
 	}
 
 	// Читаем ответ
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при чтении ответа: %w", err)
+		return nil, "", fmt.Errorf("ошибка при чтении ответа: %w", err)
 	}
 
 	// Десериализуем данные
-	var textData domain.TextData
-	if err := json.Unmarshal(body, &textData); err != nil {
-		return nil, fmt.Errorf("ошибка при десериализации данных: %w", err)
+	var response struct {
+		TextData *domain.TextData `json:"text_data"`
+		Metadata string           `json:"metadata"`
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, "", fmt.Errorf("ошибка при десериализации данных: %w", err)
 	}
 
-	return &textData, nil
+	return response.TextData, response.Metadata, nil
 }
 
 // DeleteText удаляет текстовые данные
@@ -372,11 +387,20 @@ func (c *ClientService) DeleteText(label string, token string) error {
 }
 
 // SaveCard сохраняет данные кредитной карты
-func (c *ClientService) SaveCard(label string, cardData *domain.CardData, token string) error {
+func (c *ClientService) SaveCard(label string, cardData *domain.CardData, metadata string, token string) error {
 	url := fmt.Sprintf("http://%s/api/data/card/%s", c.serverAddr, label)
 
+	// Создаем структуру для запроса, включающую метаинформацию
+	requestData := struct {
+		CardData *domain.CardData `json:"card_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		CardData: cardData,
+		Metadata: metadata,
+	}
+
 	// Преобразуем данные в JSON
-	jsonData, err := json.Marshal(cardData)
+	jsonData, err := json.Marshal(requestData)
 	if err != nil {
 		return fmt.Errorf("ошибка при маршалинге данных: %w", err)
 	}
@@ -407,13 +431,13 @@ func (c *ClientService) SaveCard(label string, cardData *domain.CardData, token 
 }
 
 // GetCard получает данные кредитной карты
-func (c *ClientService) GetCard(label string, token string) (*domain.CardData, error) {
+func (c *ClientService) GetCard(label string, token string) (*domain.CardData, string, error) {
 	url := fmt.Sprintf("http://%s/api/data/card/%s", c.serverAddr, label)
 
 	// Создаем запрос
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при создании запроса: %w", err)
+		return nil, "", fmt.Errorf("ошибка при создании запроса: %w", err)
 	}
 
 	// Устанавливаем заголовки
@@ -423,30 +447,33 @@ func (c *ClientService) GetCard(label string, token string) (*domain.CardData, e
 	// Выполняем запрос
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при выполнении запроса: %w", err)
+		return nil, "", fmt.Errorf("ошибка при выполнении запроса: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Проверяем статус ответа
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("данные карты не найдены")
+		return nil, "", fmt.Errorf("данные карты не найдены")
 	} else if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("ошибка при получении данных карты, код ответа: %d", resp.StatusCode)
+		return nil, "", fmt.Errorf("ошибка при получении данных карты, код ответа: %d", resp.StatusCode)
 	}
 
 	// Читаем ответ
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при чтении ответа: %w", err)
+		return nil, "", fmt.Errorf("ошибка при чтении ответа: %w", err)
 	}
 
 	// Десериализуем данные
-	var cardData domain.CardData
-	if err := json.Unmarshal(body, &cardData); err != nil {
-		return nil, fmt.Errorf("ошибка при десериализации данных: %w", err)
+	var response struct {
+		CardData *domain.CardData `json:"card_data"`
+		Metadata string           `json:"metadata"`
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, "", fmt.Errorf("ошибка при десериализации данных: %w", err)
 	}
 
-	return &cardData, nil
+	return response.CardData, response.Metadata, nil
 }
 
 // DeleteCard удаляет данные кредитной карты
@@ -481,11 +508,20 @@ func (c *ClientService) DeleteCard(label string, token string) error {
 }
 
 // SaveCredential сохраняет учетные данные
-func (c *ClientService) SaveCredential(label string, credentialData *domain.CredentialData, token string) error {
+func (c *ClientService) SaveCredential(label string, credentialData *domain.CredentialData, metadata string, token string) error {
 	url := fmt.Sprintf("http://%s/api/data/credential/%s", c.serverAddr, label)
 
+	// Создаем структуру для запроса, включающую метаинформацию
+	requestData := struct {
+		CredentialData *domain.CredentialData `json:"credential_data"`
+		Metadata       string                 `json:"metadata"`
+	}{
+		CredentialData: credentialData,
+		Metadata:       metadata,
+	}
+
 	// Преобразуем данные в JSON
-	jsonData, err := json.Marshal(credentialData)
+	jsonData, err := json.Marshal(requestData)
 	if err != nil {
 		return fmt.Errorf("ошибка при маршалинге данных: %w", err)
 	}
@@ -516,13 +552,13 @@ func (c *ClientService) SaveCredential(label string, credentialData *domain.Cred
 }
 
 // GetCredential получает учетные данные
-func (c *ClientService) GetCredential(label string, token string) (*domain.CredentialData, error) {
+func (c *ClientService) GetCredential(label string, token string) (*domain.CredentialData, string, error) {
 	url := fmt.Sprintf("http://%s/api/data/credential/%s", c.serverAddr, label)
 
 	// Создаем запрос
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при создании запроса: %w", err)
+		return nil, "", fmt.Errorf("ошибка при создании запроса: %w", err)
 	}
 
 	// Устанавливаем заголовки
@@ -532,30 +568,33 @@ func (c *ClientService) GetCredential(label string, token string) (*domain.Crede
 	// Выполняем запрос
 	resp, err := c.client.Do(req)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при выполнении запроса: %w", err)
+		return nil, "", fmt.Errorf("ошибка при выполнении запроса: %w", err)
 	}
 	defer resp.Body.Close()
 
 	// Проверяем статус ответа
 	if resp.StatusCode == http.StatusNotFound {
-		return nil, fmt.Errorf("учетные данные не найдены")
+		return nil, "", fmt.Errorf("учетные данные не найдены")
 	} else if resp.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("ошибка при получении учетных данных, код ответа: %d", resp.StatusCode)
+		return nil, "", fmt.Errorf("ошибка при получении учетных данных, код ответа: %d", resp.StatusCode)
 	}
 
 	// Читаем ответ
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("ошибка при чтении ответа: %w", err)
+		return nil, "", fmt.Errorf("ошибка при чтении ответа: %w", err)
 	}
 
 	// Десериализуем данные
-	var credentialData domain.CredentialData
-	if err := json.Unmarshal(body, &credentialData); err != nil {
-		return nil, fmt.Errorf("ошибка при десериализации данных: %w", err)
+	var response struct {
+		CredentialData *domain.CredentialData `json:"credential_data"`
+		Metadata       string                 `json:"metadata"`
+	}
+	if err := json.Unmarshal(body, &response); err != nil {
+		return nil, "", fmt.Errorf("ошибка при десериализации данных: %w", err)
 	}
 
-	return &credentialData, nil
+	return response.CredentialData, response.Metadata, nil
 }
 
 // DeleteCredential удаляет учетные данные

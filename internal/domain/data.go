@@ -22,6 +22,7 @@ type TextData struct {
 type FileData struct {
 	Name      string `json:"name" binding:"required"`
 	Extension string `json:"extension" binding:"required"`
+	Metadata  string `json:"metadata"`
 }
 
 type FileDataResponse struct {

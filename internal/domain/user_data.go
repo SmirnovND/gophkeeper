@@ -20,6 +20,7 @@ type UserData struct {
 	Label     string          `json:"label" db:"label"`
 	Type      string          `json:"type" db:"type"`
 	Data      json.RawMessage `json:"data" db:"data"`
+	Metadata  string          `json:"metadata" db:"metadata"`
 	CreatedAt time.Time       `json:"created_at" db:"created_at"`
 	UpdatedAt time.Time       `json:"updated_at" db:"updated_at"`
 }

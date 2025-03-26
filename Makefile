@@ -13,25 +13,25 @@ LDFLAGS = -ldflags "\
 -X main.serverAddress=$(SERVER_ADDRESS)"
 
 help:
-	@$(TAB) up-server - запустить сервер
-	@$(TAB) migrate-create - создание миграции
-	@$(TAB) up-docker - запуск контейнера
-	@$(TAB) down-docker - остановка контейнера
-	@$(TAB) migrate-up - выполнение миграций в базе данных
-	@$(TAB) migrate-down - откат последней миграции в базе данных
-	@$(TAB) doc - сгенерировать документацию
-	@$(TAB) open-doc - запустить докер, сервер и открыть документацию в браузере
+	@$(TAB) make up-server - запустить сервер
+	@$(TAB) make migrate-create - создание миграции
+	@$(TAB) make up-docker - запуск контейнера
+	@$(TAB) make down-docker - остановка контейнера
+	@$(TAB) make migrate-up - выполнение миграций в базе данных
+	@$(TAB) make migrate-down - откат последней миграции в базе данных
+	@$(TAB) make doc - сгенерировать документацию
+	@$(TAB) make open-doc - запустить докер, сервер и открыть документацию в браузере
 	@$(TAB) make cover - отчет покрытия тестами
 	@$(TAB) make cover-save - сохранить отчет покрытия тестами
 	@$(TAB) make cover-func - покрытие по функциям
 	@$(TAB) make cover-percent - процент покрытия тестами\(читаем из фаила отчета\)
-	@$(TAB) build-client - сборка клиента для текущей платформы
-	@$(TAB) build-client-all - сборка клиента для всех платформ \(Windows, Linux, macOS\)
-	@$(TAB) build-client-windows - сборка клиента для Windows
-	@$(TAB) build-client-linux - сборка клиента для Linux
-	@$(TAB) build-client-macos - сборка клиента для macOS
-	@$(TAB) build-server-linux - сборка сервера для Linux
-	@$(TAB) help - вывод справки по командам
+	@$(TAB) make build-client - сборка клиента для текущей платформы
+	@$(TAB) make build-client-all - сборка клиента для всех платформ \(Windows, Linux, macOS\)
+	@$(TAB) make build-client-windows - сборка клиента для Windows
+	@$(TAB) make build-client-linux - сборка клиента для Linux
+	@$(TAB) make build-client-macos - сборка клиента для macOS
+	@$(TAB) make build-server-linux - сборка сервера для Linux
+	@$(TAB) make help - вывод справки по командам
 
 up-server:
 	go run ./cmd/server/main.go ./cmd/server/config.yaml

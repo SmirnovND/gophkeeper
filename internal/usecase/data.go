@@ -28,7 +28,7 @@ func (c *DataUseCase) GetCredential(w http.ResponseWriter, r *http.Request, labe
 		return
 	}
 
-	credentialData, err := c.dataService.GetCredential(login, label)
+	credentialData, metadata, err := c.dataService.GetCredential(login, label)
 	if err != nil {
 		if err.Error() == "учетные данные не найдены" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -38,13 +38,22 @@ func (c *DataUseCase) GetCredential(w http.ResponseWriter, r *http.Request, labe
 		return
 	}
 
+	// Создаем структуру ответа с метаинформацией
+	response := struct {
+		CredentialData *domain.CredentialData `json:"credential_data"`
+		Metadata       string                 `json:"metadata"`
+	}{
+		CredentialData: credentialData,
+		Metadata:       metadata,
+	}
+
 	// Отправляем данные в ответе
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(credentialData)
+	json.NewEncoder(w).Encode(response)
 }
 
-func (c *DataUseCase) SaveCredential(w http.ResponseWriter, r *http.Request, label string, credentialData *domain.CredentialData) {
+func (c *DataUseCase) SaveCredential(w http.ResponseWriter, r *http.Request, label string, credentialData *domain.CredentialData, metadata string) {
 	login, err := c.jwtService.ExtractLoginFromToken(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
@@ -52,7 +61,7 @@ func (c *DataUseCase) SaveCredential(w http.ResponseWriter, r *http.Request, lab
 	}
 
 	// Сохраняем данные
-	err = c.dataService.SaveCredential(login, label, credentialData)
+	err = c.dataService.SaveCredential(login, label, credentialData, metadata)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -64,7 +73,7 @@ func (c *DataUseCase) SaveCredential(w http.ResponseWriter, r *http.Request, lab
 	json.NewEncoder(w).Encode(map[string]string{"message": "учетные данные успешно сохранены"})
 }
 
-func (c *DataUseCase) SaveCard(w http.ResponseWriter, r *http.Request, label string, cardData *domain.CardData) {
+func (c *DataUseCase) SaveCard(w http.ResponseWriter, r *http.Request, label string, cardData *domain.CardData, metadata string) {
 	login, err := c.jwtService.ExtractLoginFromToken(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
@@ -72,7 +81,7 @@ func (c *DataUseCase) SaveCard(w http.ResponseWriter, r *http.Request, label str
 	}
 
 	// Сохраняем данные
-	err = c.dataService.SaveCard(login, label, cardData)
+	err = c.dataService.SaveCard(login, label, cardData, metadata)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -92,7 +101,7 @@ func (c *DataUseCase) GetCard(w http.ResponseWriter, r *http.Request, label stri
 	}
 
 	// Получаем данные
-	cardData, err := c.dataService.GetCard(login, label)
+	cardData, metadata, err := c.dataService.GetCard(login, label)
 	if err != nil {
 		if err.Error() == "данные карты не найдены" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -102,13 +111,22 @@ func (c *DataUseCase) GetCard(w http.ResponseWriter, r *http.Request, label stri
 		return
 	}
 
+	// Создаем структуру ответа с метаинформацией
+	response := struct {
+		CardData *domain.CardData `json:"card_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		CardData: cardData,
+		Metadata: metadata,
+	}
+
 	// Отправляем данные в ответе
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(cardData)
+	json.NewEncoder(w).Encode(response)
 }
 
-func (c *DataUseCase) SaveText(w http.ResponseWriter, r *http.Request, label string, textData *domain.TextData) {
+func (c *DataUseCase) SaveText(w http.ResponseWriter, r *http.Request, label string, textData *domain.TextData, metadata string) {
 	login, err := c.jwtService.ExtractLoginFromToken(r.Header.Get("Authorization"))
 	if err != nil {
 		http.Error(w, "Ошибка получения логина: "+err.Error(), http.StatusInternalServerError)
@@ -116,7 +134,7 @@ func (c *DataUseCase) SaveText(w http.ResponseWriter, r *http.Request, label str
 	}
 
 	// Сохраняем данные
-	err = c.dataService.SaveText(login, label, textData)
+	err = c.dataService.SaveText(login, label, textData, metadata)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -136,7 +154,7 @@ func (c *DataUseCase) GetText(w http.ResponseWriter, r *http.Request, label stri
 	}
 
 	// Получаем данные
-	textData, err := c.dataService.GetText(login, label)
+	textData, metadata, err := c.dataService.GetText(login, label)
 	if err != nil {
 		if err.Error() == "текстовые данные не найдены" {
 			http.Error(w, err.Error(), http.StatusNotFound)
@@ -146,10 +164,19 @@ func (c *DataUseCase) GetText(w http.ResponseWriter, r *http.Request, label stri
 		return
 	}
 
+	// Создаем структуру ответа с метаинформацией
+	response := struct {
+		TextData *domain.TextData `json:"text_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		TextData: textData,
+		Metadata: metadata,
+	}
+
 	// Отправляем данные в ответе
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(textData)
+	json.NewEncoder(w).Encode(response)
 }
 
 func (c *DataUseCase) DeleteCredential(w http.ResponseWriter, r *http.Request, label string) {

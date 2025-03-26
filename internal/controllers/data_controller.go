@@ -1,9 +1,9 @@
 package controllers
 
 import (
+	"encoding/json"
 	"github.com/SmirnovND/gophkeeper/internal/domain"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
-	"github.com/SmirnovND/toolbox/pkg/paramsparser"
 	"github.com/go-chi/chi/v5"
 	"net/http"
 )
@@ -28,7 +28,7 @@ func NewDataController(dataUseCase interfaces.DataUseCase) *DataController {
 // @Produce json
 // @Param Authorization header string true "Bearer токен"
 // @Param label path string true "Метка для идентификации данных"
-// @Param credential body domain.CredentialData true "Учетные данные"
+// @Param credential body object true "Учетные данные с метаинформацией"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -43,12 +43,23 @@ func (c *DataController) SaveCredential(w http.ResponseWriter, r *http.Request) 
 	}
 
 	// Получаем данные из тела запроса
-	credentialData, err := paramsparser.JSONParse[domain.CredentialData](w, r)
-	if err != nil {
+	var requestData struct {
+		CredentialData *domain.CredentialData `json:"credential_data"`
+		Metadata       string                 `json:"metadata"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&requestData); err != nil {
+		http.Error(w, "ошибка при декодировании JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	c.dataUseCase.SaveCredential(w, r, label, credentialData)
+	if requestData.CredentialData == nil {
+		http.Error(w, "учетные данные не предоставлены", http.StatusBadRequest)
+		return
+	}
+
+	c.dataUseCase.SaveCredential(w, r, label, requestData.CredentialData, requestData.Metadata)
 }
 
 // GetCredential получает учетные данные (логин/пароль)
@@ -59,7 +70,7 @@ func (c *DataController) SaveCredential(w http.ResponseWriter, r *http.Request) 
 // @Produce json
 // @Param Authorization header string true "Bearer токен"
 // @Param label path string true "Метка для идентификации данных"
-// @Success 200 {object} domain.CredentialData
+// @Success 200 {object} object "Учетные данные с метаинформацией"
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -84,7 +95,7 @@ func (c *DataController) GetCredential(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param Authorization header string true "Bearer токен"
 // @Param label path string true "Метка для идентификации данных"
-// @Param card body domain.CardData true "Данные кредитной карты"
+// @Param card body object true "Данные кредитной карты с метаинформацией"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -99,12 +110,23 @@ func (c *DataController) SaveCard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получаем данные из тела запроса
-	cardData, err := paramsparser.JSONParse[domain.CardData](w, r)
-	if err != nil {
+	var requestData struct {
+		CardData *domain.CardData `json:"card_data"`
+		Metadata string           `json:"metadata"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&requestData); err != nil {
+		http.Error(w, "ошибка при декодировании JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	c.dataUseCase.SaveCard(w, r, label, cardData)
+	if requestData.CardData == nil {
+		http.Error(w, "данные карты не предоставлены", http.StatusBadRequest)
+		return
+	}
+
+	c.dataUseCase.SaveCard(w, r, label, requestData.CardData, requestData.Metadata)
 }
 
 // GetCard получает данные кредитной карты
@@ -115,7 +137,7 @@ func (c *DataController) SaveCard(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param Authorization header string true "Bearer токен"
 // @Param label path string true "Метка для идентификации данных"
-// @Success 200 {object} domain.CardData
+// @Success 200 {object} object "Данные кредитной карты с метаинформацией"
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 404 {object} map[string]string
@@ -140,7 +162,7 @@ func (c *DataController) GetCard(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param Authorization header string true "Bearer токен"
 // @Param label path string true "Метка для идентификации данных"
-// @Param text body domain.TextData true "Текстовые данные"
+// @Param text body object true "Текстовые данные с метаинформацией"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
@@ -155,12 +177,23 @@ func (c *DataController) SaveText(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Получаем данные из тела запроса
-	textData, err := paramsparser.JSONParse[domain.TextData](w, r)
-	if err != nil {
+	var requestData struct {
+		TextData *domain.TextData `json:"text_data"`
+		Metadata string           `json:"metadata"`
+	}
+
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&requestData); err != nil {
+		http.Error(w, "ошибка при декодировании JSON: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	c.dataUseCase.SaveText(w, r, label, textData)
+	if requestData.TextData == nil {
+		http.Error(w, "текстовые данные не предоставлены", http.StatusBadRequest)
+		return
+	}
+
+	c.dataUseCase.SaveText(w, r, label, requestData.TextData, requestData.Metadata)
 }
 
 // GetText получает текстовые данные
@@ -171,7 +204,7 @@ func (c *DataController) SaveText(w http.ResponseWriter, r *http.Request) {
 // @Produce json
 // @Param Authorization header string true "Bearer токен"
 // @Param label path string true "Метка для идентификации данных"
-// @Success 200 {object} domain.TextData
+// @Success 200 {object} object "Текстовые данные с метаинформацией"
 // @Failure 400 {object} map[string]string
 // @Failure 401 {object} map[string]string
 // @Failure 404 {object} map[string]string

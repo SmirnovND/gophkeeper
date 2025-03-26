@@ -51,7 +51,7 @@ func (c *CloudUseCase) GenerateUploadLink(w http.ResponseWriter, r *http.Request
 	}
 
 	// Сохраняем метаданные файла в таблице user_data
-	err = c.dataService.SaveFileMetadata(login, fileData.Name, fileData)
+	err = c.dataService.SaveFileMetadata(login, fileData.Name, fileData, fileData.Metadata)
 	if err != nil {
 		http.Error(w, "Ошибка при сохранении метаданных файла: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -83,7 +83,7 @@ func (c *CloudUseCase) GenerateDownloadLink(w http.ResponseWriter, r *http.Reque
 	}
 
 	// Получаем метаданные файла из базы данных
-	fileMetadata, err := c.dataService.GetFileMetadata(login, label)
+	fileMetadata, metadata, err := c.dataService.GetFileMetadata(login, label)
 	if err != nil {
 		http.Error(w, "Ошибка при получении метаданных файла: "+err.Error(), http.StatusInternalServerError)
 		return
@@ -99,15 +99,17 @@ func (c *CloudUseCase) GenerateDownloadLink(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	// Создаем расширенный ответ с метаданными
+	// Создаем расширенный ответ с метаданными и метаинформацией
 	response := struct {
 		URL         string              `json:"url"`
 		Description string              `json:"description"`
 		Metadata    domain.FileMetadata `json:"metadata"`
+		MetaInfo    string              `json:"meta_info"`
 	}{
 		URL:         downloadLink,
 		Description: "Скачай файл по этой ссылке",
 		Metadata:    *fileMetadata,
+		MetaInfo:    metadata,
 	}
 
 	// Отправляем ответ

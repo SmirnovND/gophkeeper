@@ -25,7 +25,7 @@ func TestNewDataUseCase(t *testing.T) {
 func TestDataUseCase_GetCredential_Success(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		GetCredentialFunc: func(login string, label string) (*domain.CredentialData, error) {
+		GetCredentialFunc: func(login string, label string) (*domain.CredentialData, string, error) {
 			if login != "testuser" {
 				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
 			}
@@ -35,7 +35,7 @@ func TestDataUseCase_GetCredential_Success(t *testing.T) {
 			return &domain.CredentialData{
 				Login:    "service-login",
 				Password: "service-password",
-			}, nil
+			}, "", nil
 		},
 	}
 
@@ -75,17 +75,20 @@ func TestDataUseCase_GetCredential_Success(t *testing.T) {
 	}
 
 	// Проверяем тело ответа
-	var response domain.CredentialData
+	var response struct {
+		CredentialData *domain.CredentialData `json:"credential_data"`
+		Metadata       string                 `json:"metadata"`
+	}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatalf("Ошибка при разборе JSON ответа: %v", err)
 	}
 
-	if response.Login != "service-login" {
-		t.Errorf("Ожидался логин 'service-login', получен '%s'", response.Login)
+	if response.CredentialData.Login != "service-login" {
+		t.Errorf("Ожидался логин 'service-login', получен '%s'", response.CredentialData.Login)
 	}
-	if response.Password != "service-password" {
-		t.Errorf("Ожидался пароль 'service-password', получен '%s'", response.Password)
+	if response.CredentialData.Password != "service-password" {
+		t.Errorf("Ожидался пароль 'service-password', получен '%s'", response.CredentialData.Password)
 	}
 }
 
@@ -130,8 +133,8 @@ func TestDataUseCase_GetCredential_TokenError(t *testing.T) {
 func TestDataUseCase_GetCredential_NotFound(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		GetCredentialFunc: func(login string, label string) (*domain.CredentialData, error) {
-			return nil, errors.New("учетные данные не найдены")
+		GetCredentialFunc: func(login string, label string) (*domain.CredentialData, string, error) {
+			return nil, "", errors.New("учетные данные не найдены")
 		},
 	}
 
@@ -171,8 +174,8 @@ func TestDataUseCase_GetCredential_NotFound(t *testing.T) {
 func TestDataUseCase_GetCredential_OtherError(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		GetCredentialFunc: func(login string, label string) (*domain.CredentialData, error) {
-			return nil, errors.New("внутренняя ошибка сервера")
+		GetCredentialFunc: func(login string, label string) (*domain.CredentialData, string, error) {
+			return nil, "", errors.New("внутренняя ошибка сервера")
 		},
 	}
 
@@ -212,7 +215,7 @@ func TestDataUseCase_GetCredential_OtherError(t *testing.T) {
 func TestDataUseCase_SaveCredential_Success(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		SaveCredentialFunc: func(login string, label string, credentialData *domain.CredentialData) error {
+		SaveCredentialFunc: func(login string, label string, credentialData *domain.CredentialData, metadata string) error {
 			if login != "testuser" {
 				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
 			}
@@ -254,7 +257,7 @@ func TestDataUseCase_SaveCredential_Success(t *testing.T) {
 	}
 
 	// Вызываем метод SaveCredential
-	dataUseCase.SaveCredential(w, req, "test-credential", credentialData)
+	dataUseCase.SaveCredential(w, req, "test-credential", credentialData, "")
 
 	// Проверяем статус ответа
 	if w.Code != http.StatusOK {
@@ -309,7 +312,7 @@ func TestDataUseCase_SaveCredential_TokenError(t *testing.T) {
 	}
 
 	// Вызываем метод SaveCredential
-	dataUseCase.SaveCredential(w, req, "test-credential", credentialData)
+	dataUseCase.SaveCredential(w, req, "test-credential", credentialData, "")
 
 	// Проверяем статус ответа
 	if w.Code != http.StatusInternalServerError {
@@ -326,7 +329,7 @@ func TestDataUseCase_SaveCredential_TokenError(t *testing.T) {
 func TestDataUseCase_SaveCredential_Error(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		SaveCredentialFunc: func(login string, label string, credentialData *domain.CredentialData) error {
+		SaveCredentialFunc: func(login string, label string, credentialData *domain.CredentialData, metadata string) error {
 			return errors.New("ошибка при сохранении учетных данных")
 		},
 	}
@@ -356,7 +359,7 @@ func TestDataUseCase_SaveCredential_Error(t *testing.T) {
 	}
 
 	// Вызываем метод SaveCredential
-	dataUseCase.SaveCredential(w, req, "test-credential", credentialData)
+	dataUseCase.SaveCredential(w, req, "test-credential", credentialData, "")
 
 	// Проверяем статус ответа
 	if w.Code != http.StatusInternalServerError {
@@ -373,7 +376,7 @@ func TestDataUseCase_SaveCredential_Error(t *testing.T) {
 func TestDataUseCase_GetCard_Success(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		GetCardFunc: func(login string, label string) (*domain.CardData, error) {
+		GetCardFunc: func(login string, label string) (*domain.CardData, string, error) {
 			if login != "testuser" {
 				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
 			}
@@ -385,7 +388,7 @@ func TestDataUseCase_GetCard_Success(t *testing.T) {
 				Holder:     "Test User",
 				ExpiryDate: "12/25",
 				CVV:        "123",
-			}, nil
+			}, "", nil
 		},
 	}
 
@@ -422,23 +425,26 @@ func TestDataUseCase_GetCard_Success(t *testing.T) {
 	}
 
 	// Проверяем тело ответа
-	var response domain.CardData
+	var response struct {
+		CardData *domain.CardData `json:"card_data"`
+		Metadata string           `json:"metadata"`
+	}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatalf("Ошибка при разборе JSON ответа: %v", err)
 	}
 
-	if response.Number != "1234567890123456" {
-		t.Errorf("Ожидался номер карты '1234567890123456', получен '%s'", response.Number)
+	if response.CardData.Number != "1234567890123456" {
+		t.Errorf("Ожидался номер карты '1234567890123456', получен '%s'", response.CardData.Number)
 	}
-	if response.Holder != "Test User" {
-		t.Errorf("Ожидался держатель карты 'Test User', получен '%s'", response.Holder)
+	if response.CardData.Holder != "Test User" {
+		t.Errorf("Ожидался держатель карты 'Test User', получен '%s'", response.CardData.Holder)
 	}
-	if response.ExpiryDate != "12/25" {
-		t.Errorf("Ожидался срок действия '12/25', получен '%s'", response.ExpiryDate)
+	if response.CardData.ExpiryDate != "12/25" {
+		t.Errorf("Ожидался срок действия '12/25', получен '%s'", response.CardData.ExpiryDate)
 	}
-	if response.CVV != "123" {
-		t.Errorf("Ожидался CVV '123', получен '%s'", response.CVV)
+	if response.CardData.CVV != "123" {
+		t.Errorf("Ожидался CVV '123', получен '%s'", response.CardData.CVV)
 	}
 }
 
@@ -446,8 +452,8 @@ func TestDataUseCase_GetCard_Success(t *testing.T) {
 func TestDataUseCase_GetCard_NotFound(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		GetCardFunc: func(login string, label string) (*domain.CardData, error) {
-			return nil, errors.New("данные карты не найдены")
+		GetCardFunc: func(login string, label string) (*domain.CardData, string, error) {
+			return nil, "", errors.New("данные карты не найдены")
 		},
 	}
 
@@ -487,7 +493,7 @@ func TestDataUseCase_GetCard_NotFound(t *testing.T) {
 func TestDataUseCase_SaveCard_Success(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		SaveCardFunc: func(login string, label string, cardData *domain.CardData) error {
+		SaveCardFunc: func(login string, label string, cardData *domain.CardData, metadata string) error {
 			if login != "testuser" {
 				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
 			}
@@ -537,7 +543,7 @@ func TestDataUseCase_SaveCard_Success(t *testing.T) {
 	}
 
 	// Вызываем метод SaveCard
-	dataUseCase.SaveCard(w, req, "test-card", cardData)
+	dataUseCase.SaveCard(w, req, "test-card", cardData, "")
 
 	// Проверяем статус ответа
 	if w.Code != http.StatusOK {
@@ -566,7 +572,7 @@ func TestDataUseCase_SaveCard_Success(t *testing.T) {
 func TestDataUseCase_GetText_Success(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		GetTextFunc: func(login string, label string) (*domain.TextData, error) {
+		GetTextFunc: func(login string, label string) (*domain.TextData, string, error) {
 			if login != "testuser" {
 				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
 			}
@@ -575,7 +581,7 @@ func TestDataUseCase_GetText_Success(t *testing.T) {
 			}
 			return &domain.TextData{
 				Content: "test text content",
-			}, nil
+			}, "", nil
 		},
 	}
 
@@ -612,14 +618,17 @@ func TestDataUseCase_GetText_Success(t *testing.T) {
 	}
 
 	// Проверяем тело ответа
-	var response domain.TextData
+	var response struct {
+		TextData *domain.TextData `json:"text_data"`
+		Metadata string           `json:"metadata"`
+	}
 	err := json.Unmarshal(w.Body.Bytes(), &response)
 	if err != nil {
 		t.Fatalf("Ошибка при разборе JSON ответа: %v", err)
 	}
 
-	if response.Content != "test text content" {
-		t.Errorf("Ожидался текст 'test text content', получен '%s'", response.Content)
+	if response.TextData.Content != "test text content" {
+		t.Errorf("Ожидался текст 'test text content', получен '%s'", response.TextData.Content)
 	}
 }
 
@@ -627,8 +636,8 @@ func TestDataUseCase_GetText_Success(t *testing.T) {
 func TestDataUseCase_GetText_NotFound(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		GetTextFunc: func(login string, label string) (*domain.TextData, error) {
-			return nil, errors.New("текстовые данные не найдены")
+		GetTextFunc: func(login string, label string) (*domain.TextData, string, error) {
+			return nil, "", errors.New("текстовые данные не найдены")
 		},
 	}
 
@@ -668,7 +677,7 @@ func TestDataUseCase_GetText_NotFound(t *testing.T) {
 func TestDataUseCase_SaveText_Success(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		SaveTextFunc: func(login string, label string, textData *domain.TextData) error {
+		SaveTextFunc: func(login string, label string, textData *domain.TextData, metadata string) error {
 			if login != "testuser" {
 				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
 			}
@@ -706,7 +715,7 @@ func TestDataUseCase_SaveText_Success(t *testing.T) {
 	}
 
 	// Вызываем метод SaveText
-	dataUseCase.SaveText(w, req, "test-text", textData)
+	dataUseCase.SaveText(w, req, "test-text", textData, "")
 
 	// Проверяем статус ответа
 	if w.Code != http.StatusOK {
@@ -760,7 +769,7 @@ func TestDataUseCase_SaveText_TokenError(t *testing.T) {
 	}
 
 	// Вызываем метод SaveText
-	dataUseCase.SaveText(w, req, "test-text", textData)
+	dataUseCase.SaveText(w, req, "test-text", textData, "")
 
 	// Проверяем статус ответа
 	if w.Code != http.StatusInternalServerError {
@@ -777,7 +786,7 @@ func TestDataUseCase_SaveText_TokenError(t *testing.T) {
 func TestDataUseCase_SaveText_Error(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{
-		SaveTextFunc: func(login string, label string, textData *domain.TextData) error {
+		SaveTextFunc: func(login string, label string, textData *domain.TextData, metadata string) error {
 			return errors.New("ошибка при сохранении текстовых данных")
 		},
 	}
@@ -806,7 +815,7 @@ func TestDataUseCase_SaveText_Error(t *testing.T) {
 	}
 
 	// Вызываем метод SaveText
-	dataUseCase.SaveText(w, req, "test-text", textData)
+	dataUseCase.SaveText(w, req, "test-text", textData, "")
 
 	// Проверяем статус ответа
 	if w.Code != http.StatusInternalServerError {
@@ -982,7 +991,13 @@ func TestDataUseCase_DeleteCard_Success(t *testing.T) {
 func TestDataUseCase_DeleteCard_TokenError(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{}
-	mockJwtService := &MockJwtService{}
+
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "", errors.New("ошибка извлечения логина из токена")
+		},
+	}
 
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
@@ -1018,10 +1033,17 @@ func TestDataUseCase_DeleteCard_NotFound(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
-		jwtService:  &MockJwtService{},
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -1052,10 +1074,17 @@ func TestDataUseCase_DeleteCard_OtherError(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
-		jwtService:  &MockJwtService{},
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -1092,10 +1121,17 @@ func TestDataUseCase_DeleteText_Success(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
-		jwtService:  &MockJwtService{},
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -1134,10 +1170,17 @@ func TestDataUseCase_DeleteText_TokenError(t *testing.T) {
 	// Создаем мок для DataService
 	mockDataService := &MockDataService{}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "", errors.New("ошибка извлечения логина из токена")
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
-		jwtService:  &MockJwtService{},
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -1168,10 +1211,17 @@ func TestDataUseCase_DeleteText_NotFound(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
-		jwtService:  &MockJwtService{},
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ
@@ -1202,10 +1252,17 @@ func TestDataUseCase_DeleteText_OtherError(t *testing.T) {
 		},
 	}
 
+	// Создаем мок для JwtService
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
+
 	// Создаем экземпляр DataUseCase
 	dataUseCase := &DataUseCase{
 		dataService: mockDataService,
-		jwtService:  &MockJwtService{},
+		jwtService:  mockJwtService,
 	}
 
 	// Создаем тестовый HTTP запрос и ответ

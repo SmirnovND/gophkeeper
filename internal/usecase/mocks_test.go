@@ -25,34 +25,34 @@ func (m *MockJwtService) ExtractLoginFromToken(tokenString string) (string, erro
 
 // MockDataService - мок для интерфейса DataService
 type MockDataService struct {
-	GetCredentialFunc    func(login string, label string) (*domain.CredentialData, error)
-	SaveCredentialFunc   func(login string, label string, credentialData *domain.CredentialData) error
+	GetCredentialFunc    func(login string, label string) (*domain.CredentialData, string, error)
+	SaveCredentialFunc   func(login string, label string, credentialData *domain.CredentialData, metadata string) error
 	DeleteCredentialFunc func(login string, label string) error
 
-	GetCardFunc    func(login string, label string) (*domain.CardData, error)
-	SaveCardFunc   func(login string, label string, cardData *domain.CardData) error
+	GetCardFunc    func(login string, label string) (*domain.CardData, string, error)
+	SaveCardFunc   func(login string, label string, cardData *domain.CardData, metadata string) error
 	DeleteCardFunc func(login string, label string) error
 
-	GetTextFunc    func(login string, label string) (*domain.TextData, error)
-	SaveTextFunc   func(login string, label string, textData *domain.TextData) error
+	GetTextFunc    func(login string, label string) (*domain.TextData, string, error)
+	SaveTextFunc   func(login string, label string, textData *domain.TextData, metadata string) error
 	DeleteTextFunc func(login string, label string) error
 
-	GetFileMetadataFunc    func(login string, label string) (*domain.FileMetadata, error)
-	SaveFileMetadataFunc   func(login string, label string, fileData *domain.FileData) error
+	GetFileMetadataFunc    func(login string, label string) (*domain.FileMetadata, string, error)
+	SaveFileMetadataFunc   func(login string, label string, fileData *domain.FileData, metadata string) error
 	DeleteFileMetadataFunc func(login string, label string) error
 }
 
 // Реализация методов интерфейса DataService для мока
-func (m *MockDataService) GetCredential(login string, label string) (*domain.CredentialData, error) {
+func (m *MockDataService) GetCredential(login string, label string) (*domain.CredentialData, string, error) {
 	if m.GetCredentialFunc != nil {
 		return m.GetCredentialFunc(login, label)
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
-func (m *MockDataService) SaveCredential(login string, label string, credentialData *domain.CredentialData) error {
+func (m *MockDataService) SaveCredential(login string, label string, credentialData *domain.CredentialData, metadata string) error {
 	if m.SaveCredentialFunc != nil {
-		return m.SaveCredentialFunc(login, label, credentialData)
+		return m.SaveCredentialFunc(login, label, credentialData, metadata)
 	}
 	return nil
 }
@@ -64,16 +64,16 @@ func (m *MockDataService) DeleteCredential(login string, label string) error {
 	return nil
 }
 
-func (m *MockDataService) GetCard(login string, label string) (*domain.CardData, error) {
+func (m *MockDataService) GetCard(login string, label string) (*domain.CardData, string, error) {
 	if m.GetCardFunc != nil {
 		return m.GetCardFunc(login, label)
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
-func (m *MockDataService) SaveCard(login string, label string, cardData *domain.CardData) error {
+func (m *MockDataService) SaveCard(login string, label string, cardData *domain.CardData, metadata string) error {
 	if m.SaveCardFunc != nil {
-		return m.SaveCardFunc(login, label, cardData)
+		return m.SaveCardFunc(login, label, cardData, metadata)
 	}
 	return nil
 }
@@ -85,16 +85,16 @@ func (m *MockDataService) DeleteCard(login string, label string) error {
 	return nil
 }
 
-func (m *MockDataService) GetText(login string, label string) (*domain.TextData, error) {
+func (m *MockDataService) GetText(login string, label string) (*domain.TextData, string, error) {
 	if m.GetTextFunc != nil {
 		return m.GetTextFunc(login, label)
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
-func (m *MockDataService) SaveText(login string, label string, textData *domain.TextData) error {
+func (m *MockDataService) SaveText(login string, label string, textData *domain.TextData, metadata string) error {
 	if m.SaveTextFunc != nil {
-		return m.SaveTextFunc(login, label, textData)
+		return m.SaveTextFunc(login, label, textData, metadata)
 	}
 	return nil
 }
@@ -106,16 +106,16 @@ func (m *MockDataService) DeleteText(login string, label string) error {
 	return nil
 }
 
-func (m *MockDataService) GetFileMetadata(login string, label string) (*domain.FileMetadata, error) {
+func (m *MockDataService) GetFileMetadata(login string, label string) (*domain.FileMetadata, string, error) {
 	if m.GetFileMetadataFunc != nil {
 		return m.GetFileMetadataFunc(login, label)
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
-func (m *MockDataService) SaveFileMetadata(login string, label string, fileData *domain.FileData) error {
+func (m *MockDataService) SaveFileMetadata(login string, label string, fileData *domain.FileData, metadata string) error {
 	if m.SaveFileMetadataFunc != nil {
-		return m.SaveFileMetadataFunc(login, label, fileData)
+		return m.SaveFileMetadataFunc(login, label, fileData, metadata)
 	}
 	return nil
 }

@@ -33,22 +33,22 @@ func (m *MockCloudService) GenerateDownloadLink(fileName string) (string, error)
 
 // MockDataServiceCloud - мок для DataService
 type MockDataServiceCloud struct {
-	SaveFileMetadataFunc func(login string, label string, fileData *domain.FileData) error
-	GetFileMetadataFunc  func(login string, label string) (*domain.FileMetadata, error)
+	SaveFileMetadataFunc func(login string, label string, fileData *domain.FileData, metadata string) error
+	GetFileMetadataFunc  func(login string, label string) (*domain.FileMetadata, string, error)
 }
 
-func (m *MockDataServiceCloud) SaveFileMetadata(login string, label string, fileData *domain.FileData) error {
+func (m *MockDataServiceCloud) SaveFileMetadata(login string, label string, fileData *domain.FileData, metadata string) error {
 	if m.SaveFileMetadataFunc != nil {
-		return m.SaveFileMetadataFunc(login, label, fileData)
+		return m.SaveFileMetadataFunc(login, label, fileData, metadata)
 	}
 	return nil
 }
 
-func (m *MockDataServiceCloud) GetFileMetadata(login string, label string) (*domain.FileMetadata, error) {
+func (m *MockDataServiceCloud) GetFileMetadata(login string, label string) (*domain.FileMetadata, string, error) {
 	if m.GetFileMetadataFunc != nil {
 		return m.GetFileMetadataFunc(login, label)
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
 // Заглушки для остальных методов интерфейса DataService
@@ -56,36 +56,36 @@ func (m *MockDataServiceCloud) DeleteFileMetadata(login string, label string) er
 	return nil
 }
 
-func (m *MockDataServiceCloud) SaveCredential(login string, label string, credentialData *domain.CredentialData) error {
+func (m *MockDataServiceCloud) SaveCredential(login string, label string, credentialData *domain.CredentialData, metadata string) error {
 	return nil
 }
 
-func (m *MockDataServiceCloud) GetCredential(login string, label string) (*domain.CredentialData, error) {
-	return nil, nil
+func (m *MockDataServiceCloud) GetCredential(login string, label string) (*domain.CredentialData, string, error) {
+	return nil, "", nil
 }
 
 func (m *MockDataServiceCloud) DeleteCredential(login string, label string) error {
 	return nil
 }
 
-func (m *MockDataServiceCloud) SaveCard(login string, label string, cardData *domain.CardData) error {
+func (m *MockDataServiceCloud) SaveCard(login string, label string, cardData *domain.CardData, metadata string) error {
 	return nil
 }
 
-func (m *MockDataServiceCloud) GetCard(login string, label string) (*domain.CardData, error) {
-	return nil, nil
+func (m *MockDataServiceCloud) GetCard(login string, label string) (*domain.CardData, string, error) {
+	return nil, "", nil
 }
 
 func (m *MockDataServiceCloud) DeleteCard(login string, label string) error {
 	return nil
 }
 
-func (m *MockDataServiceCloud) SaveText(login string, label string, textData *domain.TextData) error {
+func (m *MockDataServiceCloud) SaveText(login string, label string, textData *domain.TextData, metadata string) error {
 	return nil
 }
 
-func (m *MockDataServiceCloud) GetText(login string, label string) (*domain.TextData, error) {
-	return nil, nil
+func (m *MockDataServiceCloud) GetText(login string, label string) (*domain.TextData, string, error) {
+	return nil, "", nil
 }
 
 func (m *MockDataServiceCloud) DeleteText(login string, label string) error {
@@ -118,7 +118,7 @@ func TestCloudUseCase_GenerateUploadLink_Success(t *testing.T) {
 	}
 
 	MockDataServiceCloud := &MockDataServiceCloud{
-		SaveFileMetadataFunc: func(login string, label string, fileData *domain.FileData) error {
+		SaveFileMetadataFunc: func(login string, label string, fileData *domain.FileData, metadata string) error {
 			if login != "testuser" {
 				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
 			}
@@ -350,7 +350,7 @@ func TestCloudUseCase_GenerateUploadLink_DataServiceError(t *testing.T) {
 		},
 	}
 	MockDataServiceCloud := &MockDataServiceCloud{
-		SaveFileMetadataFunc: func(login string, label string, fileData *domain.FileData) error {
+		SaveFileMetadataFunc: func(login string, label string, fileData *domain.FileData, metadata string) error {
 			return errors.New("ошибка сохранения метаданных")
 		},
 	}
@@ -408,7 +408,7 @@ func TestCloudUseCase_GenerateDownloadLink_Success(t *testing.T) {
 	}
 
 	MockDataServiceCloud := &MockDataServiceCloud{
-		GetFileMetadataFunc: func(login string, label string) (*domain.FileMetadata, error) {
+		GetFileMetadataFunc: func(login string, label string) (*domain.FileMetadata, string, error) {
 			if login != "testuser" {
 				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
 			}
@@ -418,7 +418,7 @@ func TestCloudUseCase_GenerateDownloadLink_Success(t *testing.T) {
 			return &domain.FileMetadata{
 				FileName:  "test-file",
 				Extension: "txt",
-			}, nil
+			}, "", nil
 		},
 	}
 
@@ -563,8 +563,8 @@ func TestCloudUseCase_GenerateDownloadLink_GetFileMetadataError(t *testing.T) {
 	mockCloudService := &MockCloudService{}
 	mockJwtService := &MockJwtService{}
 	MockDataServiceCloud := &MockDataServiceCloud{
-		GetFileMetadataFunc: func(login string, label string) (*domain.FileMetadata, error) {
-			return nil, errors.New("ошибка получения метаданных файла")
+		GetFileMetadataFunc: func(login string, label string) (*domain.FileMetadata, string, error) {
+			return nil, "", errors.New("ошибка получения метаданных файла")
 		},
 	}
 
@@ -602,13 +602,17 @@ func TestCloudUseCase_GenerateDownloadLink_GenerateDownloadLinkError(t *testing.
 			return "", errors.New("ошибка генерации ссылки для скачивания")
 		},
 	}
-	mockJwtService := &MockJwtService{}
+	mockJwtService := &MockJwtService{
+		ExtractLoginFromTokenFunc: func(tokenString string) (string, error) {
+			return "testuser", nil
+		},
+	}
 	MockDataServiceCloud := &MockDataServiceCloud{
-		GetFileMetadataFunc: func(login string, label string) (*domain.FileMetadata, error) {
+		GetFileMetadataFunc: func(login string, label string) (*domain.FileMetadata, string, error) {
 			return &domain.FileMetadata{
 				FileName:  "test-file",
 				Extension: "txt",
-			}, nil
+			}, "", nil
 		},
 	}
 

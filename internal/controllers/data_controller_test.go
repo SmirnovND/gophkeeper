@@ -18,8 +18,8 @@ type MockDataUseCase struct {
 	mock.Mock
 }
 
-func (m *MockDataUseCase) SaveCredential(w http.ResponseWriter, r *http.Request, label string, credentialData *domain.CredentialData) {
-	m.Called(w, r, label, credentialData)
+func (m *MockDataUseCase) SaveCredential(w http.ResponseWriter, r *http.Request, label string, credentialData *domain.CredentialData, metadata string) {
+	m.Called(w, r, label, credentialData, metadata)
 }
 
 func (m *MockDataUseCase) GetCredential(w http.ResponseWriter, r *http.Request, label string) {
@@ -30,8 +30,8 @@ func (m *MockDataUseCase) DeleteCredential(w http.ResponseWriter, r *http.Reques
 	m.Called(w, r, label)
 }
 
-func (m *MockDataUseCase) SaveCard(w http.ResponseWriter, r *http.Request, label string, cardData *domain.CardData) {
-	m.Called(w, r, label, cardData)
+func (m *MockDataUseCase) SaveCard(w http.ResponseWriter, r *http.Request, label string, cardData *domain.CardData, metadata string) {
+	m.Called(w, r, label, cardData, metadata)
 }
 
 func (m *MockDataUseCase) GetCard(w http.ResponseWriter, r *http.Request, label string) {
@@ -42,8 +42,8 @@ func (m *MockDataUseCase) DeleteCard(w http.ResponseWriter, r *http.Request, lab
 	m.Called(w, r, label)
 }
 
-func (m *MockDataUseCase) SaveText(w http.ResponseWriter, r *http.Request, label string, textData *domain.TextData) {
-	m.Called(w, r, label, textData)
+func (m *MockDataUseCase) SaveText(w http.ResponseWriter, r *http.Request, label string, textData *domain.TextData, metadata string) {
+	m.Called(w, r, label, textData, metadata)
 }
 
 func (m *MockDataUseCase) GetText(w http.ResponseWriter, r *http.Request, label string) {
@@ -83,9 +83,17 @@ func TestDataController_SaveCredential(t *testing.T) {
 		Login:    "testuser",
 		Password: "password123",
 	}
+	metadata := "test metadata"
 
 	// Создаем JSON из данных
-	jsonData, _ := json.Marshal(credentialData)
+	requestData := struct {
+		CredentialData *domain.CredentialData `json:"credential_data"`
+		Metadata       string                 `json:"metadata"`
+	}{
+		CredentialData: &credentialData,
+		Metadata:       metadata,
+	}
+	jsonData, _ := json.Marshal(requestData)
 
 	// Создаем запрос с параметрами URL
 	req, rr := createRequestWithURLParam("POST", "/api/data/credential/"+label, "label", label, jsonData)
@@ -93,7 +101,7 @@ func TestDataController_SaveCredential(t *testing.T) {
 	// Настраиваем поведение мока
 	mockDataUseCase.On("SaveCredential", mock.Anything, mock.Anything, label, mock.MatchedBy(func(c *domain.CredentialData) bool {
 		return c.Login == credentialData.Login && c.Password == credentialData.Password
-	}))
+	}), metadata)
 
 	// Act
 	controller.SaveCredential(rr, req)
@@ -159,9 +167,17 @@ func TestDataController_SaveCard(t *testing.T) {
 		ExpiryDate: "12/25",
 		CVV:        "123",
 	}
+	metadata := "card metadata"
 
 	// Создаем JSON из данных
-	jsonData, _ := json.Marshal(cardData)
+	requestData := struct {
+		CardData *domain.CardData `json:"card_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		CardData: &cardData,
+		Metadata: metadata,
+	}
+	jsonData, _ := json.Marshal(requestData)
 
 	// Создаем запрос с параметрами URL
 	req, rr := createRequestWithURLParam("POST", "/api/data/card/"+label, "label", label, jsonData)
@@ -170,7 +186,7 @@ func TestDataController_SaveCard(t *testing.T) {
 	mockDataUseCase.On("SaveCard", mock.Anything, mock.Anything, label, mock.MatchedBy(func(c *domain.CardData) bool {
 		return c.Number == cardData.Number && c.Holder == cardData.Holder &&
 			c.ExpiryDate == cardData.ExpiryDate && c.CVV == cardData.CVV
-	}))
+	}), metadata)
 
 	// Act
 	controller.SaveCard(rr, req)
@@ -233,9 +249,17 @@ func TestDataController_SaveText(t *testing.T) {
 	textData := domain.TextData{
 		Content: "This is a test text content",
 	}
+	metadata := "text metadata"
 
 	// Создаем JSON из данных
-	jsonData, _ := json.Marshal(textData)
+	requestData := struct {
+		TextData *domain.TextData `json:"text_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		TextData: &textData,
+		Metadata: metadata,
+	}
+	jsonData, _ := json.Marshal(requestData)
 
 	// Создаем запрос с параметрами URL
 	req, rr := createRequestWithURLParam("POST", "/api/data/text/"+label, "label", label, jsonData)
@@ -243,7 +267,7 @@ func TestDataController_SaveText(t *testing.T) {
 	// Настраиваем поведение мока
 	mockDataUseCase.On("SaveText", mock.Anything, mock.Anything, label, mock.MatchedBy(func(t *domain.TextData) bool {
 		return t.Content == textData.Content
-	}))
+	}), metadata)
 
 	// Act
 	controller.SaveText(rr, req)
@@ -306,9 +330,17 @@ func TestDataController_SaveCredential_MissingLabel(t *testing.T) {
 		Login:    "testuser",
 		Password: "password123",
 	}
+	metadata := "test metadata"
 
 	// Создаем JSON из данных
-	jsonData, _ := json.Marshal(credentialData)
+	requestData := struct {
+		CredentialData *domain.CredentialData `json:"credential_data"`
+		Metadata       string                 `json:"metadata"`
+	}{
+		CredentialData: &credentialData,
+		Metadata:       metadata,
+	}
+	jsonData, _ := json.Marshal(requestData)
 
 	// Создаем запрос без параметра label
 	req, _ := http.NewRequest("POST", "/api/data/credential/", bytes.NewBuffer(jsonData))
@@ -334,7 +366,7 @@ func TestDataController_SaveCredential_InvalidJSON(t *testing.T) {
 	label := "test-label"
 
 	// Создаем некорректный JSON
-	invalidJSON := []byte(`{"login": "testuser", "password":}`)
+	invalidJSON := []byte(`{"credential_data": {"login": "testuser", "password":}, "metadata": "test"}`)
 
 	// Создаем запрос с параметрами URL
 	req, rr := createRequestWithURLParam("POST", "/api/data/credential/"+label, "label", label, invalidJSON)

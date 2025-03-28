@@ -12,30 +12,30 @@ import (
 
 // MockDataClientUseCase - расширенный мок для интерфейса ClientUseCase с методами для работы с данными
 type MockDataClientUseCase struct {
-	SaveTextFunc         func(label string, textData *domain.TextData) error
-	GetTextFunc          func(label string) (*domain.TextData, error)
+	SaveTextFunc         func(label string, textData *domain.TextData, metadata string) error
+	GetTextFunc          func(label string) (*domain.TextData, string, error)
 	DeleteTextFunc       func(label string) error
-	SaveCardFunc         func(label string, cardData *domain.CardData) error
-	GetCardFunc          func(label string) (*domain.CardData, error)
+	SaveCardFunc         func(label string, cardData *domain.CardData, metadata string) error
+	GetCardFunc          func(label string) (*domain.CardData, string, error)
 	DeleteCardFunc       func(label string) error
-	SaveCredentialFunc   func(label string, credentialData *domain.CredentialData) error
-	GetCredentialFunc    func(label string) (*domain.CredentialData, error)
+	SaveCredentialFunc   func(label string, credentialData *domain.CredentialData, metadata string) error
+	GetCredentialFunc    func(label string) (*domain.CredentialData, string, error)
 	DeleteCredentialFunc func(label string) error
 }
 
 // Реализация методов интерфейса ClientUseCase для работы с текстовыми данными
-func (m *MockDataClientUseCase) SaveText(label string, textData *domain.TextData) error {
+func (m *MockDataClientUseCase) SaveText(label string, textData *domain.TextData, metadata string) error {
 	if m.SaveTextFunc != nil {
-		return m.SaveTextFunc(label, textData)
+		return m.SaveTextFunc(label, textData, metadata)
 	}
 	return nil
 }
 
-func (m *MockDataClientUseCase) GetText(label string) (*domain.TextData, error) {
+func (m *MockDataClientUseCase) GetText(label string) (*domain.TextData, string, error) {
 	if m.GetTextFunc != nil {
 		return m.GetTextFunc(label)
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
 func (m *MockDataClientUseCase) DeleteText(label string) error {
@@ -46,18 +46,18 @@ func (m *MockDataClientUseCase) DeleteText(label string) error {
 }
 
 // Реализация методов интерфейса ClientUseCase для работы с данными карт
-func (m *MockDataClientUseCase) SaveCard(label string, cardData *domain.CardData) error {
+func (m *MockDataClientUseCase) SaveCard(label string, cardData *domain.CardData, metadata string) error {
 	if m.SaveCardFunc != nil {
-		return m.SaveCardFunc(label, cardData)
+		return m.SaveCardFunc(label, cardData, metadata)
 	}
 	return nil
 }
 
-func (m *MockDataClientUseCase) GetCard(label string) (*domain.CardData, error) {
+func (m *MockDataClientUseCase) GetCard(label string) (*domain.CardData, string, error) {
 	if m.GetCardFunc != nil {
 		return m.GetCardFunc(label)
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
 func (m *MockDataClientUseCase) DeleteCard(label string) error {
@@ -68,18 +68,18 @@ func (m *MockDataClientUseCase) DeleteCard(label string) error {
 }
 
 // Реализация методов интерфейса ClientUseCase для работы с учетными данными
-func (m *MockDataClientUseCase) SaveCredential(label string, credentialData *domain.CredentialData) error {
+func (m *MockDataClientUseCase) SaveCredential(label string, credentialData *domain.CredentialData, metadata string) error {
 	if m.SaveCredentialFunc != nil {
-		return m.SaveCredentialFunc(label, credentialData)
+		return m.SaveCredentialFunc(label, credentialData, metadata)
 	}
 	return nil
 }
 
-func (m *MockDataClientUseCase) GetCredential(label string) (*domain.CredentialData, error) {
+func (m *MockDataClientUseCase) GetCredential(label string) (*domain.CredentialData, string, error) {
 	if m.GetCredentialFunc != nil {
 		return m.GetCredentialFunc(label)
 	}
-	return nil, nil
+	return nil, "", nil
 }
 
 func (m *MockDataClientUseCase) DeleteCredential(label string) error {
@@ -134,7 +134,7 @@ func TestCommand_SaveTextCmd_Success(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		SaveTextFunc: func(label string, textData *domain.TextData) error {
+		SaveTextFunc: func(label string, textData *domain.TextData, metadata string) error {
 			// Проверяем параметры
 			if label != "test_label" {
 				t.Errorf("Ожидалась метка 'test_label', получена '%s'", label)
@@ -194,7 +194,7 @@ func TestCommand_SaveTextCmd_Error(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		SaveTextFunc: func(label string, textData *domain.TextData) error {
+		SaveTextFunc: func(label string, textData *domain.TextData, metadata string) error {
 			return errors.New("ошибка при сохранении текста")
 		},
 	}
@@ -247,14 +247,14 @@ func TestCommand_GetTextCmd_Success(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		GetTextFunc: func(label string) (*domain.TextData, error) {
+		GetTextFunc: func(label string) (*domain.TextData, string, error) {
 			// Проверяем параметры
 			if label != "test_label" {
 				t.Errorf("Ожидалась метка 'test_label', получена '%s'", label)
 			}
 			return &domain.TextData{
 				Content: "test_content",
-			}, nil
+			}, "", nil
 		},
 	}
 
@@ -306,8 +306,8 @@ func TestCommand_GetTextCmd_Error(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		GetTextFunc: func(label string) (*domain.TextData, error) {
-			return nil, errors.New("ошибка при получении текста")
+		GetTextFunc: func(label string) (*domain.TextData, string, error) {
+			return nil, "", errors.New("ошибка при получении текста")
 		},
 	}
 
@@ -472,7 +472,7 @@ func TestCommand_SaveCardCmd_Success(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		SaveCardFunc: func(label string, cardData *domain.CardData) error {
+		SaveCardFunc: func(label string, cardData *domain.CardData, metadata string) error {
 			// Проверяем параметры
 			if label != "test_label" {
 				t.Errorf("Ожидалась метка 'test_label', получена '%s'", label)
@@ -542,7 +542,7 @@ func TestCommand_SaveCardCmd_Error(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		SaveCardFunc: func(label string, cardData *domain.CardData) error {
+		SaveCardFunc: func(label string, cardData *domain.CardData, metadata string) error {
 			return errors.New("ошибка при сохранении данных карты")
 		},
 	}
@@ -595,7 +595,7 @@ func TestCommand_GetCardCmd_Success(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		GetCardFunc: func(label string) (*domain.CardData, error) {
+		GetCardFunc: func(label string) (*domain.CardData, string, error) {
 			// Проверяем параметры
 			if label != "test_label" {
 				t.Errorf("Ожидалась метка 'test_label', получена '%s'", label)
@@ -605,7 +605,7 @@ func TestCommand_GetCardCmd_Success(t *testing.T) {
 				Holder:     "John",
 				ExpiryDate: "12/25",
 				CVV:        "123",
-			}, nil
+			}, "", nil
 		},
 	}
 
@@ -660,8 +660,8 @@ func TestCommand_GetCardCmd_Error(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		GetCardFunc: func(label string) (*domain.CardData, error) {
-			return nil, errors.New("ошибка при получении данных карты")
+		GetCardFunc: func(label string) (*domain.CardData, string, error) {
+			return nil, "", errors.New("ошибка при получении данных карты")
 		},
 	}
 
@@ -825,7 +825,7 @@ func TestCommand_SaveCredentialCmd_Success(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		SaveCredentialFunc: func(label string, credentialData *domain.CredentialData) error {
+		SaveCredentialFunc: func(label string, credentialData *domain.CredentialData, metadata string) error {
 			// Проверяем параметры
 			if label != "test_label" {
 				t.Errorf("Ожидалась метка 'test_label', получена '%s'", label)
@@ -888,7 +888,7 @@ func TestCommand_SaveCredentialCmd_Error(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		SaveCredentialFunc: func(label string, credentialData *domain.CredentialData) error {
+		SaveCredentialFunc: func(label string, credentialData *domain.CredentialData, metadata string) error {
 			return errors.New("ошибка при сохранении учетных данных")
 		},
 	}
@@ -941,7 +941,7 @@ func TestCommand_GetCredentialCmd_Success(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		GetCredentialFunc: func(label string) (*domain.CredentialData, error) {
+		GetCredentialFunc: func(label string) (*domain.CredentialData, string, error) {
 			// Проверяем параметры
 			if label != "test_label" {
 				t.Errorf("Ожидалась метка 'test_label', получена '%s'", label)
@@ -949,7 +949,7 @@ func TestCommand_GetCredentialCmd_Success(t *testing.T) {
 			return &domain.CredentialData{
 				Login:    "test_login",
 				Password: "test_password",
-			}, nil
+			}, "", nil
 		},
 	}
 
@@ -1001,8 +1001,8 @@ func TestCommand_GetCredentialCmd_Error(t *testing.T) {
 
 	// Создаем мок для ClientUseCase
 	mockClientUseCase := &MockDataClientUseCase{
-		GetCredentialFunc: func(label string) (*domain.CredentialData, error) {
-			return nil, errors.New("ошибка при получении учетных данных")
+		GetCredentialFunc: func(label string) (*domain.CredentialData, string, error) {
+			return nil, "", errors.New("ошибка при получении учетных данных")
 		},
 	}
 

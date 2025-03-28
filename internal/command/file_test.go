@@ -40,36 +40,36 @@ func (m *MockFileClientUseCase) Register(username string, password string, passw
 	return nil
 }
 
-func (m *MockFileClientUseCase) SaveText(label string, textData *domain.TextData) error {
+func (m *MockFileClientUseCase) SaveText(label string, textData *domain.TextData, metadata string) error {
 	return nil
 }
 
-func (m *MockFileClientUseCase) GetText(label string) (*domain.TextData, error) {
-	return nil, nil
+func (m *MockFileClientUseCase) GetText(label string) (*domain.TextData, string, error) {
+	return nil, "", nil
 }
 
 func (m *MockFileClientUseCase) DeleteText(label string) error {
 	return nil
 }
 
-func (m *MockFileClientUseCase) SaveCard(label string, cardData *domain.CardData) error {
+func (m *MockFileClientUseCase) SaveCard(label string, cardData *domain.CardData, metadata string) error {
 	return nil
 }
 
-func (m *MockFileClientUseCase) GetCard(label string) (*domain.CardData, error) {
-	return nil, nil
+func (m *MockFileClientUseCase) GetCard(label string) (*domain.CardData, string, error) {
+	return nil, "", nil
 }
 
 func (m *MockFileClientUseCase) DeleteCard(label string) error {
 	return nil
 }
 
-func (m *MockFileClientUseCase) SaveCredential(label string, credentialData *domain.CredentialData) error {
+func (m *MockFileClientUseCase) SaveCredential(label string, credentialData *domain.CredentialData, metadata string) error {
 	return nil
 }
 
-func (m *MockFileClientUseCase) GetCredential(label string) (*domain.CredentialData, error) {
-	return nil, nil
+func (m *MockFileClientUseCase) GetCredential(label string) (*domain.CredentialData, string, error) {
+	return nil, "", nil
 }
 
 func (m *MockFileClientUseCase) DeleteCredential(label string) error {

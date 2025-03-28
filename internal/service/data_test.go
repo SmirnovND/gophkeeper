@@ -89,7 +89,7 @@ func TestDataService_SaveFileMetadata(t *testing.T) {
 		Name:      "test-file",
 		Extension: "txt",
 	}
-	err := dataService.SaveFileMetadata("testuser", "test-file", fileData)
+	err := dataService.SaveFileMetadata("testuser", "test-file", fileData, "")
 
 	// Проверяем результаты
 	if err != nil {
@@ -119,7 +119,7 @@ func TestDataService_SaveFileMetadata_UserNotFound(t *testing.T) {
 		Name:      "test-file",
 		Extension: "txt",
 	}
-	err := dataService.SaveFileMetadata("testuser", "test-file", fileData)
+	err := dataService.SaveFileMetadata("testuser", "test-file", fileData, "")
 
 	// Проверяем результаты
 	if err == nil {
@@ -185,7 +185,7 @@ func TestDataService_GetFileMetadata(t *testing.T) {
 	}
 
 	// Вызываем метод GetFileMetadata
-	result, err := dataService.GetFileMetadata("testuser", "test-file")
+	result, _, err := dataService.GetFileMetadata("testuser", "test-file")
 
 	// Проверяем результаты
 	if err != nil {
@@ -220,7 +220,7 @@ func TestDataService_GetFileMetadata_UserNotFound(t *testing.T) {
 	}
 
 	// Вызываем метод GetFileMetadata
-	_, err := dataService.GetFileMetadata("testuser", "test-file")
+	_, _, err := dataService.GetFileMetadata("testuser", "test-file")
 
 	// Проверяем результаты
 	if err == nil {
@@ -256,7 +256,7 @@ func TestDataService_GetFileMetadata_DataNotFound(t *testing.T) {
 	}
 
 	// Вызываем метод GetFileMetadata
-	_, err := dataService.GetFileMetadata("testuser", "test-file")
+	_, _, err := dataService.GetFileMetadata("testuser", "test-file")
 
 	// Проверяем результаты
 	if err == nil {
@@ -386,7 +386,7 @@ func TestDataService_SaveCredential(t *testing.T) {
 		Login:    "service-login",
 		Password: "service-password",
 	}
-	err := dataService.SaveCredential("testuser", "test-credential", credentialData)
+	err := dataService.SaveCredential("testuser", "test-credential", credentialData, "")
 
 	// Проверяем результаты
 	if err != nil {
@@ -452,7 +452,7 @@ func TestDataService_GetCredential(t *testing.T) {
 	}
 
 	// Вызываем метод GetCredential
-	result, err := dataService.GetCredential("testuser", "test-credential")
+	result, _, err := dataService.GetCredential("testuser", "test-credential")
 
 	// Проверяем результаты
 	if err != nil {
@@ -599,7 +599,7 @@ func TestDataService_SaveCard(t *testing.T) {
 		ExpiryDate: "12/25",
 		CVV:        "123",
 	}
-	err := dataService.SaveCard("testuser", "test-card", cardData)
+	err := dataService.SaveCard("testuser", "test-card", cardData, "")
 
 	// Проверяем результаты
 	if err != nil {
@@ -667,7 +667,7 @@ func TestDataService_GetCard(t *testing.T) {
 	}
 
 	// Вызываем метод GetCard
-	result, err := dataService.GetCard("testuser", "test-card")
+	result, _, err := dataService.GetCard("testuser", "test-card")
 
 	// Проверяем результаты
 	if err != nil {
@@ -808,7 +808,7 @@ func TestDataService_SaveText(t *testing.T) {
 	textData := &domain.TextData{
 		Content: "test text content",
 	}
-	err := dataService.SaveText("testuser", "test-text", textData)
+	err := dataService.SaveText("testuser", "test-text", textData, "")
 
 	// Проверяем результаты
 	if err != nil {
@@ -873,7 +873,7 @@ func TestDataService_GetText(t *testing.T) {
 	}
 
 	// Вызываем метод GetText
-	result, err := dataService.GetText("testuser", "test-text")
+	result, _, err := dataService.GetText("testuser", "test-text")
 
 	// Проверяем результаты
 	if err != nil {

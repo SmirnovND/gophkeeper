@@ -144,6 +144,11 @@ func (c *ClientService) GetUploadLink(label string, extension string, metadata s
 	if err := json.Unmarshal(respBody, &response); err != nil {
 		return "", errors.New(fmt.Sprintf("Ошибка при парсинге ответа: %v\n", err))
 	}
+	
+	// Проверяем, что URL не пустой
+	if response.URL == "" {
+		return "", errors.New("URL для загрузки не найден в ответе")
+	}
 
 	return response.URL, nil
 }

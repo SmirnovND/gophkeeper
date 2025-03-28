@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/SmirnovND/gophkeeper/internal/command"
 	"github.com/SmirnovND/gophkeeper/internal/container/client"
 	"github.com/SmirnovND/gophkeeper/internal/interfaces"
 	"os"
@@ -21,13 +22,16 @@ var rootCmd = &cobra.Command{
 }
 
 func main() {
-	fmt.Println(serverAddress)
+	// Устанавливаем информацию о версии и дате сборки
+	command.SetVersionInfo(version, buildDate)
+	
 	diContainer := client.NewContainer(serverAddress)
 	var Command interfaces.Command
 	diContainer.Invoke(func(cmd interfaces.Command) {
 		Command = cmd
 	})
 	rootCmd.AddCommand(Command.Login())
+	rootCmd.AddCommand(Command.RegisterCmd())
 	rootCmd.AddCommand(Command.UploadCmd())
 	rootCmd.AddCommand(Command.DownloadCmd())
 	
@@ -45,6 +49,10 @@ func main() {
 	rootCmd.AddCommand(Command.SaveCredentialCmd())
 	rootCmd.AddCommand(Command.GetCredentialCmd())
 	rootCmd.AddCommand(Command.DeleteCredentialCmd())
+	
+	// Добавляем команду для получения информации о версии
+	rootCmd.AddCommand(Command.VersionCmd())
+	
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Println(err)
 		os.Exit(1)

@@ -22,4 +22,7 @@ type Command interface {
 	SaveCredentialCmd() *cobra.Command
 	GetCredentialCmd() *cobra.Command
 	DeleteCredentialCmd() *cobra.Command
+	
+	// Команда для получения информации о версии
+	VersionCmd() *cobra.Command
 }

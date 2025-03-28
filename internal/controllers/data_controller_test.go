@@ -378,3 +378,341 @@ func TestDataController_SaveCredential_InvalidJSON(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, rr.Code)
 	mockDataUseCase.AssertNotCalled(t, "SaveCredential")
 }
+
+func TestDataController_SaveCredential_MissingCredentialData(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем тестовые данные
+	label := "test-label"
+	
+	// Создаем JSON без данных учетной записи
+	requestData := struct {
+		CredentialData *domain.CredentialData `json:"credential_data"`
+		Metadata       string                 `json:"metadata"`
+	}{
+		CredentialData: nil,
+		Metadata:       "test metadata",
+	}
+	jsonData, _ := json.Marshal(requestData)
+
+	// Создаем запрос с параметрами URL
+	req, rr := createRequestWithURLParam("POST", "/api/data/credential/"+label, "label", label, jsonData)
+
+	// Act
+	controller.SaveCredential(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "SaveCredential")
+}
+
+func TestDataController_GetCredential_MissingLabel(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем запрос без параметра label
+	req, _ := http.NewRequest("GET", "/api/data/credential/", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Создаем ResponseRecorder для записи ответа
+	rr := httptest.NewRecorder()
+
+	// Act
+	controller.GetCredential(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "GetCredential")
+}
+
+func TestDataController_DeleteCredential_MissingLabel(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем запрос без параметра label
+	req, _ := http.NewRequest("DELETE", "/api/data/credential/", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Создаем ResponseRecorder для записи ответа
+	rr := httptest.NewRecorder()
+
+	// Act
+	controller.DeleteCredential(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "DeleteCredential")
+}
+
+func TestDataController_SaveCard_MissingLabel(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем тестовые данные
+	cardData := domain.CardData{
+		Number:     "1234567890123456",
+		Holder:     "Test User",
+		ExpiryDate: "12/25",
+		CVV:        "123",
+	}
+	metadata := "card metadata"
+
+	// Создаем JSON из данных
+	requestData := struct {
+		CardData *domain.CardData `json:"card_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		CardData: &cardData,
+		Metadata: metadata,
+	}
+	jsonData, _ := json.Marshal(requestData)
+
+	// Создаем запрос без параметра label
+	req, _ := http.NewRequest("POST", "/api/data/card/", bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Создаем ResponseRecorder для записи ответа
+	rr := httptest.NewRecorder()
+
+	// Act
+	controller.SaveCard(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "SaveCard")
+}
+
+func TestDataController_SaveCard_InvalidJSON(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем тестовые данные
+	label := "test-label"
+
+	// Создаем некорректный JSON
+	invalidJSON := []byte(`{"card_data": {"number": "1234567890123456", "holder":}, "metadata": "test"}`)
+
+	// Создаем запрос с параметрами URL
+	req, rr := createRequestWithURLParam("POST", "/api/data/card/"+label, "label", label, invalidJSON)
+
+	// Act
+	controller.SaveCard(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "SaveCard")
+}
+
+func TestDataController_SaveCard_MissingCardData(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем тестовые данные
+	label := "test-label"
+	
+	// Создаем JSON без данных карты
+	requestData := struct {
+		CardData *domain.CardData `json:"card_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		CardData: nil,
+		Metadata: "test metadata",
+	}
+	jsonData, _ := json.Marshal(requestData)
+
+	// Создаем запрос с параметрами URL
+	req, rr := createRequestWithURLParam("POST", "/api/data/card/"+label, "label", label, jsonData)
+
+	// Act
+	controller.SaveCard(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "SaveCard")
+}
+
+func TestDataController_GetCard_MissingLabel(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем запрос без параметра label
+	req, _ := http.NewRequest("GET", "/api/data/card/", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Создаем ResponseRecorder для записи ответа
+	rr := httptest.NewRecorder()
+
+	// Act
+	controller.GetCard(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "GetCard")
+}
+
+func TestDataController_DeleteCard_MissingLabel(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем запрос без параметра label
+	req, _ := http.NewRequest("DELETE", "/api/data/card/", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Создаем ResponseRecorder для записи ответа
+	rr := httptest.NewRecorder()
+
+	// Act
+	controller.DeleteCard(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "DeleteCard")
+}
+
+func TestDataController_SaveText_MissingLabel(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем тестовые данные
+	textData := domain.TextData{
+		Content: "This is a test text content",
+	}
+	metadata := "text metadata"
+
+	// Создаем JSON из данных
+	requestData := struct {
+		TextData *domain.TextData `json:"text_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		TextData: &textData,
+		Metadata: metadata,
+	}
+	jsonData, _ := json.Marshal(requestData)
+
+	// Создаем запрос без параметра label
+	req, _ := http.NewRequest("POST", "/api/data/text/", bytes.NewBuffer(jsonData))
+	req.Header.Set("Content-Type", "application/json")
+
+	// Создаем ResponseRecorder для записи ответа
+	rr := httptest.NewRecorder()
+
+	// Act
+	controller.SaveText(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "SaveText")
+}
+
+func TestDataController_SaveText_InvalidJSON(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем тестовые данные
+	label := "test-label"
+
+	// Создаем некорректный JSON
+	invalidJSON := []byte(`{"text_data": {"content":}, "metadata": "test"}`)
+
+	// Создаем запрос с параметрами URL
+	req, rr := createRequestWithURLParam("POST", "/api/data/text/"+label, "label", label, invalidJSON)
+
+	// Act
+	controller.SaveText(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "SaveText")
+}
+
+func TestDataController_SaveText_MissingTextData(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем тестовые данные
+	label := "test-label"
+	
+	// Создаем JSON без текстовых данных
+	requestData := struct {
+		TextData *domain.TextData `json:"text_data"`
+		Metadata string           `json:"metadata"`
+	}{
+		TextData: nil,
+		Metadata: "test metadata",
+	}
+	jsonData, _ := json.Marshal(requestData)
+
+	// Создаем запрос с параметрами URL
+	req, rr := createRequestWithURLParam("POST", "/api/data/text/"+label, "label", label, jsonData)
+
+	// Act
+	controller.SaveText(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "SaveText")
+}
+
+func TestDataController_GetText_MissingLabel(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем запрос без параметра label
+	req, _ := http.NewRequest("GET", "/api/data/text/", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Создаем ResponseRecorder для записи ответа
+	rr := httptest.NewRecorder()
+
+	// Act
+	controller.GetText(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "GetText")
+}
+
+func TestDataController_DeleteText_MissingLabel(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	controller := NewDataController(mockDataUseCase)
+
+	// Создаем запрос без параметра label
+	req, _ := http.NewRequest("DELETE", "/api/data/text/", nil)
+	req.Header.Set("Content-Type", "application/json")
+
+	// Создаем ResponseRecorder для записи ответа
+	rr := httptest.NewRecorder()
+
+	// Act
+	controller.DeleteText(rr, req)
+
+	// Assert
+	assert.Equal(t, http.StatusBadRequest, rr.Code)
+	mockDataUseCase.AssertNotCalled(t, "DeleteText")
+}
+
+func TestNewDataController(t *testing.T) {
+	// Arrange
+	mockDataUseCase := new(MockDataUseCase)
+	
+	// Act
+	controller := NewDataController(mockDataUseCase)
+	
+	// Assert
+	assert.NotNil(t, controller)
+	assert.Equal(t, mockDataUseCase, controller.dataUseCase)
+}

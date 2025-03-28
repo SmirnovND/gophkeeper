@@ -8,6 +8,9 @@ import (
 	"os"
 )
 
+// Переменная для перехвата вызовов os.Exit в тестах
+var osExit = os.Exit
+
 type Config struct {
 	Db    `yaml:"db"`
 	App   `yaml:"app"`
@@ -75,12 +78,16 @@ func NewConfig() interfaces.ConfigServer {
 func (c *Config) LoadConfig(patch string) {
 	file, err := os.Open(patch)
 	if err != nil {
-		log.Fatal("ReadConfigFile: ", err)
+		log.Print("ReadConfigFile: ", err)
+		osExit(1)
+		return
 	}
 
 	decoder := yaml.NewDecoder(file)
 	err = decoder.Decode(&c)
 	if err != nil {
-		log.Fatal("DecodeConfigFile: ", err)
+		log.Print("DecodeConfigFile: ", err)
+		osExit(1)
+		return
 	}
 }

@@ -266,270 +266,785 @@ func TestDataService_GetFileMetadata_DataNotFound(t *testing.T) {
 
 // TestDataService_DeleteFileMetadata тестирует метод DeleteFileMetadata
 func TestDataService_DeleteFileMetadata(t *testing.T) {
-	// Создаем моки для репозиториев
-	mockUserRepo := &MockUserRepo{
-		FindUserFunc: func(login string) (*domain.User, error) {
-			// Проверяем параметры
-			if login != "testuser" {
-				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
-			}
-			return &domain.User{
-				Id: "user123",
-				Credentials: domain.Credentials{
-					Login:    "testuser",
-					PassHash: "hash",
-				},
-			}, nil
-		},
-	}
+	// Тест успешного удаления
+	t.Run("Success", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				// Проверяем параметры
+				if login != "testuser" {
+					t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
+				}
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
 
-	mockUserDataRepo := &MockUserDataRepo{
-		GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
-			// Проверяем параметры
-			if userID != "user123" {
-				t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
-			}
-			if label != "test-file" {
-				t.Errorf("Ожидалась метка 'test-file', получена '%s'", label)
-			}
-			if dataType != domain.UserDataTypeFile {
-				t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeFile, dataType)
-			}
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				// Проверяем параметры
+				if userID != "user123" {
+					t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
+				}
+				if label != "test-file" {
+					t.Errorf("Ожидалась метка 'test-file', получена '%s'", label)
+				}
+				if dataType != domain.UserDataTypeFile {
+					t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeFile, dataType)
+				}
 
-			return &domain.UserData{
-				ID:     "data123",
-				UserID: "user123",
-				Label:  "test-file",
-				Type:   domain.UserDataTypeFile,
-			}, nil
-		},
-		DeleteUserDataFunc: func(id string) error {
-			// Проверяем параметры
-			if id != "data123" {
-				t.Errorf("Ожидался ID 'data123', получен '%s'", id)
-			}
-			return nil
-		},
-	}
+				return &domain.UserData{
+					ID:     "data123",
+					UserID: "user123",
+					Label:  "test-file",
+					Type:   domain.UserDataTypeFile,
+				}, nil
+			},
+			DeleteUserDataFunc: func(id string) error {
+				// Проверяем параметры
+				if id != "data123" {
+					t.Errorf("Ожидался ID 'data123', получен '%s'", id)
+				}
+				return nil
+			},
+		}
 
-	// Создаем экземпляр DataService
-	dataService := &DataService{
-		repo:     mockUserDataRepo,
-		userRepo: mockUserRepo,
-	}
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
 
-	// Вызываем метод DeleteFileMetadata
-	err := dataService.DeleteFileMetadata("testuser", "test-file")
+		// Вызываем метод DeleteFileMetadata
+		err := dataService.DeleteFileMetadata("testuser", "test-file")
 
-	// Проверяем результаты
-	if err != nil {
-		t.Fatalf("Ошибка при вызове DeleteFileMetadata: %v", err)
-	}
+		// Проверяем результаты
+		if err != nil {
+			t.Fatalf("Ошибка при вызове DeleteFileMetadata: %v", err)
+		}
+	})
+
+	// Тест ошибки при поиске пользователя
+	t.Run("UserNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return nil, errors.New("пользователь не найден")
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteFileMetadata
+		err := dataService.DeleteFileMetadata("testuser", "test-file")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при получении данных
+	t.Run("GetDataError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, errors.New("ошибка при получении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteFileMetadata
+		err := dataService.DeleteFileMetadata("testuser", "test-file")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при отсутствии данных
+	t.Run("DataNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, nil
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteFileMetadata
+		err := dataService.DeleteFileMetadata("testuser", "test-file")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при удалении данных
+	t.Run("DeleteError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return &domain.UserData{
+					ID:     "data123",
+					UserID: "user123",
+					Label:  "test-file",
+					Type:   domain.UserDataTypeFile,
+				}, nil
+			},
+			DeleteUserDataFunc: func(id string) error {
+				return errors.New("ошибка при удалении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteFileMetadata
+		err := dataService.DeleteFileMetadata("testuser", "test-file")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
 }
 
 // TestDataService_SaveCredential тестирует метод SaveCredential
 func TestDataService_SaveCredential(t *testing.T) {
-	// Создаем моки для репозиториев
-	mockUserRepo := &MockUserRepo{
-		FindUserFunc: func(login string) (*domain.User, error) {
-			// Проверяем параметры
-			if login != "testuser" {
-				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
-			}
-			return &domain.User{
-				Id: "user123",
-				Credentials: domain.Credentials{
-					Login:    "testuser",
-					PassHash: "hash",
-				},
-			}, nil
-		},
-	}
+	// Тест успешного сохранения
+	t.Run("Success", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				// Проверяем параметры
+				if login != "testuser" {
+					t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
+				}
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
 
-	mockUserDataRepo := &MockUserDataRepo{
-		SaveUserDataFunc: func(userData *domain.UserData) error {
-			// Проверяем параметры
-			if userData.UserID != "user123" {
-				t.Errorf("Ожидался UserID 'user123', получен '%s'", userData.UserID)
-			}
-			if userData.Label != "test-credential" {
-				t.Errorf("Ожидалась метка 'test-credential', получена '%s'", userData.Label)
-			}
-			if userData.Type != domain.UserDataTypeCredential {
-				t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCredential, userData.Type)
-			}
+		mockUserDataRepo := &MockUserDataRepo{
+			SaveUserDataFunc: func(userData *domain.UserData) error {
+				// Проверяем параметры
+				if userData.UserID != "user123" {
+					t.Errorf("Ожидался UserID 'user123', получен '%s'", userData.UserID)
+				}
+				if userData.Label != "test-credential" {
+					t.Errorf("Ожидалась метка 'test-credential', получена '%s'", userData.Label)
+				}
+				if userData.Type != domain.UserDataTypeCredential {
+					t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCredential, userData.Type)
+				}
 
-			// Проверяем данные
-			var credentialData domain.CredentialData
-			if err := json.Unmarshal(userData.Data, &credentialData); err != nil {
-				t.Fatalf("Ошибка при десериализации данных: %v", err)
-			}
-			if credentialData.Login != "service-login" {
-				t.Errorf("Ожидался логин 'service-login', получен '%s'", credentialData.Login)
-			}
-			if credentialData.Password != "service-password" {
-				t.Errorf("Ожидался пароль 'service-password', получен '%s'", credentialData.Password)
-			}
+				// Проверяем данные
+				var credentialData domain.CredentialData
+				if err := json.Unmarshal(userData.Data, &credentialData); err != nil {
+					t.Fatalf("Ошибка при десериализации данных: %v", err)
+				}
+				if credentialData.Login != "service-login" {
+					t.Errorf("Ожидался логин 'service-login', получен '%s'", credentialData.Login)
+				}
+				if credentialData.Password != "service-password" {
+					t.Errorf("Ожидался пароль 'service-password', получен '%s'", credentialData.Password)
+				}
 
-			return nil
-		},
-	}
+				return nil
+			},
+		}
 
-	// Создаем экземпляр DataService
-	dataService := &DataService{
-		repo:     mockUserDataRepo,
-		userRepo: mockUserRepo,
-	}
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
 
-	// Вызываем метод SaveCredential
-	credentialData := &domain.CredentialData{
-		Login:    "service-login",
-		Password: "service-password",
-	}
-	err := dataService.SaveCredential("testuser", "test-credential", credentialData, "")
+		// Вызываем метод SaveCredential
+		credentialData := &domain.CredentialData{
+			Login:    "service-login",
+			Password: "service-password",
+		}
+		err := dataService.SaveCredential("testuser", "test-credential", credentialData, "test metadata")
 
-	// Проверяем результаты
-	if err != nil {
-		t.Fatalf("Ошибка при вызове SaveCredential: %v", err)
-	}
+		// Проверяем результаты
+		if err != nil {
+			t.Fatalf("Ошибка при вызове SaveCredential: %v", err)
+		}
+	})
+
+	// Тест ошибки при поиске пользователя
+	t.Run("UserNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return nil, errors.New("пользователь не найден")
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Создаем данные для сохранения
+		credentialData := &domain.CredentialData{
+			Login:    "service-login",
+			Password: "service-password",
+		}
+
+		// Вызываем метод SaveCredential
+		err := dataService.SaveCredential("testuser", "test-credential", credentialData, "test metadata")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при сохранении данных
+	t.Run("SaveError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			SaveUserDataFunc: func(userData *domain.UserData) error {
+				return errors.New("ошибка при сохранении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Создаем данные для сохранения
+		credentialData := &domain.CredentialData{
+			Login:    "service-login",
+			Password: "service-password",
+		}
+
+		// Вызываем метод SaveCredential
+		err := dataService.SaveCredential("testuser", "test-credential", credentialData, "test metadata")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
 }
 
 // TestDataService_GetCredential тестирует метод GetCredential
 func TestDataService_GetCredential(t *testing.T) {
-	// Создаем моки для репозиториев
-	mockUserRepo := &MockUserRepo{
-		FindUserFunc: func(login string) (*domain.User, error) {
-			// Проверяем параметры
-			if login != "testuser" {
-				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
-			}
-			return &domain.User{
-				Id: "user123",
-				Credentials: domain.Credentials{
-					Login:    "testuser",
-					PassHash: "hash",
-				},
-			}, nil
-		},
-	}
+	// Тест успешного получения данных
+	t.Run("Success", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				// Проверяем параметры
+				if login != "testuser" {
+					t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
+				}
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
 
-	// Создаем данные учетной записи
-	credentialData := domain.CredentialData{
-		Login:    "service-login",
-		Password: "service-password",
-	}
-	credentialDataJSON, _ := json.Marshal(credentialData)
+		// Создаем данные учетной записи
+		credentialData := domain.CredentialData{
+			Login:    "service-login",
+			Password: "service-password",
+		}
+		credentialDataJSON, _ := json.Marshal(credentialData)
 
-	mockUserDataRepo := &MockUserDataRepo{
-		GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
-			// Проверяем параметры
-			if userID != "user123" {
-				t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
-			}
-			if label != "test-credential" {
-				t.Errorf("Ожидалась метка 'test-credential', получена '%s'", label)
-			}
-			if dataType != domain.UserDataTypeCredential {
-				t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCredential, dataType)
-			}
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				// Проверяем параметры
+				if userID != "user123" {
+					t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
+				}
+				if label != "test-credential" {
+					t.Errorf("Ожидалась метка 'test-credential', получена '%s'", label)
+				}
+				if dataType != domain.UserDataTypeCredential {
+					t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCredential, dataType)
+				}
 
-			return &domain.UserData{
-				ID:        "data123",
-				UserID:    "user123",
-				Label:     "test-credential",
-				Type:      domain.UserDataTypeCredential,
-				Data:      credentialDataJSON,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			}, nil
-		},
-	}
+				return &domain.UserData{
+					ID:        "data123",
+					UserID:    "user123",
+					Label:     "test-credential",
+					Type:      domain.UserDataTypeCredential,
+					Data:      credentialDataJSON,
+					Metadata:  "test metadata",
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+				}, nil
+			},
+		}
 
-	// Создаем экземпляр DataService
-	dataService := &DataService{
-		repo:     mockUserDataRepo,
-		userRepo: mockUserRepo,
-	}
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
 
-	// Вызываем метод GetCredential
-	result, _, err := dataService.GetCredential("testuser", "test-credential")
+		// Вызываем метод GetCredential
+		result, metadata, err := dataService.GetCredential("testuser", "test-credential")
 
-	// Проверяем результаты
-	if err != nil {
-		t.Fatalf("Ошибка при вызове GetCredential: %v", err)
-	}
-	if result == nil {
-		t.Fatal("Результат не должен быть nil")
-	}
-	if result.Login != "service-login" {
-		t.Errorf("Ожидался логин 'service-login', получен '%s'", result.Login)
-	}
-	if result.Password != "service-password" {
-		t.Errorf("Ожидался пароль 'service-password', получен '%s'", result.Password)
-	}
+		// Проверяем результаты
+		if err != nil {
+			t.Fatalf("Ошибка при вызове GetCredential: %v", err)
+		}
+		if result == nil {
+			t.Fatal("Результат не должен быть nil")
+		}
+		if result.Login != "service-login" {
+			t.Errorf("Ожидался логин 'service-login', получен '%s'", result.Login)
+		}
+		if result.Password != "service-password" {
+			t.Errorf("Ожидался пароль 'service-password', получен '%s'", result.Password)
+		}
+		if metadata != "test metadata" {
+			t.Errorf("Ожидались метаданные 'test metadata', получены '%s'", metadata)
+		}
+	})
+
+	// Тест ошибки при поиске пользователя
+	t.Run("UserNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return nil, errors.New("пользователь не найден")
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод GetCredential
+		_, _, err := dataService.GetCredential("testuser", "test-credential")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при получении данных
+	t.Run("GetDataError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, errors.New("ошибка при получении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод GetCredential
+		_, _, err := dataService.GetCredential("testuser", "test-credential")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при отсутствии данных
+	t.Run("DataNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, nil
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод GetCredential
+		_, _, err := dataService.GetCredential("testuser", "test-credential")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при демаршалинге данных
+	t.Run("UnmarshalError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return &domain.UserData{
+					ID:       "data123",
+					UserID:   "user123",
+					Label:    "test-credential",
+					Type:     domain.UserDataTypeCredential,
+					Data:     []byte("invalid json"),
+					Metadata: "test metadata",
+				}, nil
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод GetCredential
+		_, _, err := dataService.GetCredential("testuser", "test-credential")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
 }
 
 // TestDataService_DeleteCredential тестирует метод DeleteCredential
 func TestDataService_DeleteCredential(t *testing.T) {
-	// Создаем моки для репозиториев
-	mockUserRepo := &MockUserRepo{
-		FindUserFunc: func(login string) (*domain.User, error) {
-			// Проверяем параметры
-			if login != "testuser" {
-				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
-			}
-			return &domain.User{
-				Id: "user123",
-				Credentials: domain.Credentials{
-					Login:    "testuser",
-					PassHash: "hash",
-				},
-			}, nil
-		},
-	}
+	// Тест успешного удаления
+	t.Run("Success", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				// Проверяем параметры
+				if login != "testuser" {
+					t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
+				}
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
 
-	mockUserDataRepo := &MockUserDataRepo{
-		GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
-			// Проверяем параметры
-			if userID != "user123" {
-				t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
-			}
-			if label != "test-credential" {
-				t.Errorf("Ожидалась метка 'test-credential', получена '%s'", label)
-			}
-			if dataType != domain.UserDataTypeCredential {
-				t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCredential, dataType)
-			}
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				// Проверяем параметры
+				if userID != "user123" {
+					t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
+				}
+				if label != "test-credential" {
+					t.Errorf("Ожидалась метка 'test-credential', получена '%s'", label)
+				}
+				if dataType != domain.UserDataTypeCredential {
+					t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCredential, dataType)
+				}
 
-			return &domain.UserData{
-				ID:     "data123",
-				UserID: "user123",
-				Label:  "test-credential",
-				Type:   domain.UserDataTypeCredential,
-			}, nil
-		},
-		DeleteUserDataFunc: func(id string) error {
-			// Проверяем параметры
-			if id != "data123" {
-				t.Errorf("Ожидался ID 'data123', получен '%s'", id)
-			}
-			return nil
-		},
-	}
+				return &domain.UserData{
+					ID:     "data123",
+					UserID: "user123",
+					Label:  "test-credential",
+					Type:   domain.UserDataTypeCredential,
+				}, nil
+			},
+			DeleteUserDataFunc: func(id string) error {
+				// Проверяем параметры
+				if id != "data123" {
+					t.Errorf("Ожидался ID 'data123', получен '%s'", id)
+				}
+				return nil
+			},
+		}
 
-	// Создаем экземпляр DataService
-	dataService := &DataService{
-		repo:     mockUserDataRepo,
-		userRepo: mockUserRepo,
-	}
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
 
-	// Вызываем метод DeleteCredential
-	err := dataService.DeleteCredential("testuser", "test-credential")
+		// Вызываем метод DeleteCredential
+		err := dataService.DeleteCredential("testuser", "test-credential")
 
-	// Проверяем результаты
-	if err != nil {
-		t.Fatalf("Ошибка при вызове DeleteCredential: %v", err)
-	}
+		// Проверяем результаты
+		if err != nil {
+			t.Fatalf("Ошибка при вызове DeleteCredential: %v", err)
+		}
+	})
+
+	// Тест ошибки при поиске пользователя
+	t.Run("UserNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return nil, errors.New("пользователь не найден")
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteCredential
+		err := dataService.DeleteCredential("testuser", "test-credential")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при получении данных
+	t.Run("GetDataError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, errors.New("ошибка при получении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteCredential
+		err := dataService.DeleteCredential("testuser", "test-credential")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при отсутствии данных
+	t.Run("DataNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, nil
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteCredential
+		err := dataService.DeleteCredential("testuser", "test-credential")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при удалении данных
+	t.Run("DeleteError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return &domain.UserData{
+					ID:     "data123",
+					UserID: "user123",
+					Label:  "test-credential",
+					Type:   domain.UserDataTypeCredential,
+				}, nil
+			},
+			DeleteUserDataFunc: func(id string) error {
+				return errors.New("ошибка при удалении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteCredential
+		err := dataService.DeleteCredential("testuser", "test-credential")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
 }
 
 // TestDataService_SaveCard тестирует метод SaveCard
@@ -609,148 +1124,440 @@ func TestDataService_SaveCard(t *testing.T) {
 
 // TestDataService_GetCard тестирует метод GetCard
 func TestDataService_GetCard(t *testing.T) {
-	// Создаем моки для репозиториев
-	mockUserRepo := &MockUserRepo{
-		FindUserFunc: func(login string) (*domain.User, error) {
-			// Проверяем параметры
-			if login != "testuser" {
-				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
-			}
-			return &domain.User{
-				Id: "user123",
-				Credentials: domain.Credentials{
-					Login:    "testuser",
-					PassHash: "hash",
-				},
-			}, nil
-		},
-	}
+	// Тест успешного получения данных карты
+	t.Run("Success", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				// Проверяем параметры
+				if login != "testuser" {
+					t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
+				}
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
 
-	// Создаем данные карты
-	cardData := domain.CardData{
-		Number:     "1234567890123456",
-		Holder:     "Test User",
-		ExpiryDate: "12/25",
-		CVV:        "123",
-	}
-	cardDataJSON, _ := json.Marshal(cardData)
+		// Создаем данные карты
+		cardData := domain.CardData{
+			Number:     "1234567890123456",
+			Holder:     "Test User",
+			ExpiryDate: "12/25",
+			CVV:        "123",
+		}
+		cardDataJSON, _ := json.Marshal(cardData)
 
-	mockUserDataRepo := &MockUserDataRepo{
-		GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
-			// Проверяем параметры
-			if userID != "user123" {
-				t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
-			}
-			if label != "test-card" {
-				t.Errorf("Ожидалась метка 'test-card', получена '%s'", label)
-			}
-			if dataType != domain.UserDataTypeCard {
-				t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCard, dataType)
-			}
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				// Проверяем параметры
+				if userID != "user123" {
+					t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
+				}
+				if label != "test-card" {
+					t.Errorf("Ожидалась метка 'test-card', получена '%s'", label)
+				}
+				if dataType != domain.UserDataTypeCard {
+					t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCard, dataType)
+				}
 
-			return &domain.UserData{
-				ID:        "data123",
-				UserID:    "user123",
-				Label:     "test-card",
-				Type:      domain.UserDataTypeCard,
-				Data:      cardDataJSON,
-				CreatedAt: time.Now(),
-				UpdatedAt: time.Now(),
-			}, nil
-		},
-	}
+				return &domain.UserData{
+					ID:        "data123",
+					UserID:    "user123",
+					Label:     "test-card",
+					Type:      domain.UserDataTypeCard,
+					Data:      cardDataJSON,
+					CreatedAt: time.Now(),
+					UpdatedAt: time.Now(),
+					Metadata:  "test metadata",
+				}, nil
+			},
+		}
 
-	// Создаем экземпляр DataService
-	dataService := &DataService{
-		repo:     mockUserDataRepo,
-		userRepo: mockUserRepo,
-	}
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
 
-	// Вызываем метод GetCard
-	result, _, err := dataService.GetCard("testuser", "test-card")
+		// Вызываем метод GetCard
+		result, metadata, err := dataService.GetCard("testuser", "test-card")
 
-	// Проверяем результаты
-	if err != nil {
-		t.Fatalf("Ошибка при вызове GetCard: %v", err)
-	}
-	if result == nil {
-		t.Fatal("Результат не должен быть nil")
-	}
-	if result.Number != "1234567890123456" {
-		t.Errorf("Ожидался номер карты '1234567890123456', получен '%s'", result.Number)
-	}
-	if result.Holder != "Test User" {
-		t.Errorf("Ожидался держатель карты 'Test User', получен '%s'", result.Holder)
-	}
-	if result.ExpiryDate != "12/25" {
-		t.Errorf("Ожидался срок действия '12/25', получен '%s'", result.ExpiryDate)
-	}
-	if result.CVV != "123" {
-		t.Errorf("Ожидался CVV '123', получен '%s'", result.CVV)
-	}
+		// Проверяем результаты
+		if err != nil {
+			t.Fatalf("Ошибка при вызове GetCard: %v", err)
+		}
+		if result == nil {
+			t.Fatal("Результат не должен быть nil")
+		}
+		if result.Number != "1234567890123456" {
+			t.Errorf("Ожидался номер карты '1234567890123456', получен '%s'", result.Number)
+		}
+		if result.Holder != "Test User" {
+			t.Errorf("Ожидался держатель карты 'Test User', получен '%s'", result.Holder)
+		}
+		if result.ExpiryDate != "12/25" {
+			t.Errorf("Ожидался срок действия '12/25', получен '%s'", result.ExpiryDate)
+		}
+		if result.CVV != "123" {
+			t.Errorf("Ожидался CVV '123', получен '%s'", result.CVV)
+		}
+		if metadata != "test metadata" {
+			t.Errorf("Ожидались метаданные 'test metadata', получены '%s'", metadata)
+		}
+	})
+
+	// Тест ошибки при поиске пользователя
+	t.Run("UserNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return nil, errors.New("пользователь не найден")
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод GetCard
+		_, _, err := dataService.GetCard("testuser", "test-card")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при получении данных
+	t.Run("GetDataError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, errors.New("ошибка при получении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод GetCard
+		_, _, err := dataService.GetCard("testuser", "test-card")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при отсутствии данных
+	t.Run("DataNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, nil
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод GetCard
+		_, _, err := dataService.GetCard("testuser", "test-card")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при десериализации данных
+	t.Run("UnmarshalError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return &domain.UserData{
+					ID:     "data123",
+					UserID: "user123",
+					Label:  "test-card",
+					Type:   domain.UserDataTypeCard,
+					Data:   []byte("invalid json"), // Некорректный JSON для вызова ошибки десериализации
+				}, nil
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод GetCard
+		_, _, err := dataService.GetCard("testuser", "test-card")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
 }
 
 // TestDataService_DeleteCard тестирует метод DeleteCard
 func TestDataService_DeleteCard(t *testing.T) {
-	// Создаем моки для репозиториев
-	mockUserRepo := &MockUserRepo{
-		FindUserFunc: func(login string) (*domain.User, error) {
-			// Проверяем параметры
-			if login != "testuser" {
-				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
-			}
-			return &domain.User{
-				Id: "user123",
-				Credentials: domain.Credentials{
-					Login:    "testuser",
-					PassHash: "hash",
-				},
-			}, nil
-		},
-	}
+	// Тест успешного удаления
+	t.Run("Success", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				// Проверяем параметры
+				if login != "testuser" {
+					t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
+				}
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
 
-	mockUserDataRepo := &MockUserDataRepo{
-		GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
-			// Проверяем параметры
-			if userID != "user123" {
-				t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
-			}
-			if label != "test-card" {
-				t.Errorf("Ожидалась метка 'test-card', получена '%s'", label)
-			}
-			if dataType != domain.UserDataTypeCard {
-				t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCard, dataType)
-			}
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				// Проверяем параметры
+				if userID != "user123" {
+					t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
+				}
+				if label != "test-card" {
+					t.Errorf("Ожидалась метка 'test-card', получена '%s'", label)
+				}
+				if dataType != domain.UserDataTypeCard {
+					t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeCard, dataType)
+				}
 
-			return &domain.UserData{
-				ID:     "data123",
-				UserID: "user123",
-				Label:  "test-card",
-				Type:   domain.UserDataTypeCard,
-			}, nil
-		},
-		DeleteUserDataFunc: func(id string) error {
-			// Проверяем параметры
-			if id != "data123" {
-				t.Errorf("Ожидался ID 'data123', получен '%s'", id)
-			}
-			return nil
-		},
-	}
+				return &domain.UserData{
+					ID:     "data123",
+					UserID: "user123",
+					Label:  "test-card",
+					Type:   domain.UserDataTypeCard,
+				}, nil
+			},
+			DeleteUserDataFunc: func(id string) error {
+				// Проверяем параметры
+				if id != "data123" {
+					t.Errorf("Ожидался ID 'data123', получен '%s'", id)
+				}
+				return nil
+			},
+		}
 
-	// Создаем экземпляр DataService
-	dataService := &DataService{
-		repo:     mockUserDataRepo,
-		userRepo: mockUserRepo,
-	}
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
 
-	// Вызываем метод DeleteCard
-	err := dataService.DeleteCard("testuser", "test-card")
+		// Вызываем метод DeleteCard
+		err := dataService.DeleteCard("testuser", "test-card")
 
-	// Проверяем результаты
-	if err != nil {
-		t.Fatalf("Ошибка при вызове DeleteCard: %v", err)
-	}
+		// Проверяем результаты
+		if err != nil {
+			t.Fatalf("Ошибка при вызове DeleteCard: %v", err)
+		}
+	})
+
+	// Тест ошибки при поиске пользователя
+	t.Run("UserNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return nil, errors.New("пользователь не найден")
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteCard
+		err := dataService.DeleteCard("testuser", "test-card")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при получении данных
+	t.Run("GetDataError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, errors.New("ошибка при получении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteCard
+		err := dataService.DeleteCard("testuser", "test-card")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при отсутствии данных
+	t.Run("DataNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, nil
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteCard
+		err := dataService.DeleteCard("testuser", "test-card")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при удалении данных
+	t.Run("DeleteError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return &domain.UserData{
+					ID:     "data123",
+					UserID: "user123",
+					Label:  "test-card",
+					Type:   domain.UserDataTypeCard,
+				}, nil
+			},
+			DeleteUserDataFunc: func(id string) error {
+				return errors.New("ошибка при удалении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteCard
+		err := dataService.DeleteCard("testuser", "test-card")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
 }
 
 // TestDataService_SaveText тестирует метод SaveText
@@ -889,63 +1696,208 @@ func TestDataService_GetText(t *testing.T) {
 
 // TestDataService_DeleteText тестирует метод DeleteText
 func TestDataService_DeleteText(t *testing.T) {
-	// Создаем моки для репозиториев
-	mockUserRepo := &MockUserRepo{
-		FindUserFunc: func(login string) (*domain.User, error) {
-			// Проверяем параметры
-			if login != "testuser" {
-				t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
-			}
-			return &domain.User{
-				Id: "user123",
-				Credentials: domain.Credentials{
-					Login:    "testuser",
-					PassHash: "hash",
-				},
-			}, nil
-		},
-	}
+	// Тест успешного удаления
+	t.Run("Success", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				// Проверяем параметры
+				if login != "testuser" {
+					t.Errorf("Ожидался логин 'testuser', получен '%s'", login)
+				}
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
 
-	mockUserDataRepo := &MockUserDataRepo{
-		GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
-			// Проверяем параметры
-			if userID != "user123" {
-				t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
-			}
-			if label != "test-text" {
-				t.Errorf("Ожидалась метка 'test-text', получена '%s'", label)
-			}
-			if dataType != domain.UserDataTypeText {
-				t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeText, dataType)
-			}
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				// Проверяем параметры
+				if userID != "user123" {
+					t.Errorf("Ожидался UserID 'user123', получен '%s'", userID)
+				}
+				if label != "test-text" {
+					t.Errorf("Ожидалась метка 'test-text', получена '%s'", label)
+				}
+				if dataType != domain.UserDataTypeText {
+					t.Errorf("Ожидался тип '%s', получен '%s'", domain.UserDataTypeText, dataType)
+				}
 
-			return &domain.UserData{
-				ID:     "data123",
-				UserID: "user123",
-				Label:  "test-text",
-				Type:   domain.UserDataTypeText,
-			}, nil
-		},
-		DeleteUserDataFunc: func(id string) error {
-			// Проверяем параметры
-			if id != "data123" {
-				t.Errorf("Ожидался ID 'data123', получен '%s'", id)
-			}
-			return nil
-		},
-	}
+				return &domain.UserData{
+					ID:     "data123",
+					UserID: "user123",
+					Label:  "test-text",
+					Type:   domain.UserDataTypeText,
+				}, nil
+			},
+			DeleteUserDataFunc: func(id string) error {
+				// Проверяем параметры
+				if id != "data123" {
+					t.Errorf("Ожидался ID 'data123', получен '%s'", id)
+				}
+				return nil
+			},
+		}
 
-	// Создаем экземпляр DataService
-	dataService := &DataService{
-		repo:     mockUserDataRepo,
-		userRepo: mockUserRepo,
-	}
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
 
-	// Вызываем метод DeleteText
-	err := dataService.DeleteText("testuser", "test-text")
+		// Вызываем метод DeleteText
+		err := dataService.DeleteText("testuser", "test-text")
 
-	// Проверяем результаты
-	if err != nil {
-		t.Fatalf("Ошибка при вызове DeleteText: %v", err)
-	}
+		// Проверяем результаты
+		if err != nil {
+			t.Fatalf("Ошибка при вызове DeleteText: %v", err)
+		}
+	})
+
+	// Тест ошибки при поиске пользователя
+	t.Run("UserNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return nil, errors.New("пользователь не найден")
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteText
+		err := dataService.DeleteText("testuser", "test-text")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при получении данных
+	t.Run("GetDataError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, errors.New("ошибка при получении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteText
+		err := dataService.DeleteText("testuser", "test-text")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при отсутствии данных
+	t.Run("DataNotFound", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return nil, nil
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteText
+		err := dataService.DeleteText("testuser", "test-text")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
+
+	// Тест ошибки при удалении данных
+	t.Run("DeleteError", func(t *testing.T) {
+		// Создаем моки для репозиториев
+		mockUserRepo := &MockUserRepo{
+			FindUserFunc: func(login string) (*domain.User, error) {
+				return &domain.User{
+					Id: "user123",
+					Credentials: domain.Credentials{
+						Login:    "testuser",
+						PassHash: "hash",
+					},
+				}, nil
+			},
+		}
+
+		mockUserDataRepo := &MockUserDataRepo{
+			GetUserDataByLabelAndTypeFunc: func(userID, label string, dataType string) (*domain.UserData, error) {
+				return &domain.UserData{
+					ID:     "data123",
+					UserID: "user123",
+					Label:  "test-text",
+					Type:   domain.UserDataTypeText,
+				}, nil
+			},
+			DeleteUserDataFunc: func(id string) error {
+				return errors.New("ошибка при удалении данных")
+			},
+		}
+
+		// Создаем экземпляр DataService
+		dataService := &DataService{
+			repo:     mockUserDataRepo,
+			userRepo: mockUserRepo,
+		}
+
+		// Вызываем метод DeleteText
+		err := dataService.DeleteText("testuser", "test-text")
+
+		// Проверяем результаты
+		if err == nil {
+			t.Fatal("Ожидалась ошибка, но ее не было")
+		}
+	})
 }
